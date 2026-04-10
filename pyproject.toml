@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "tempus"
+version = "0.1.0"
+description = "A focused Pomodoro timer for GNOME"
+readme = "README.md"
+license = { text = "GPL-3.0-or-later" }
+authors = [{ name = "EmaLica" }]
+requires-python = ">=3.11"
+
+[project.scripts]
+tempus = "tempus.main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["tempus*"]
