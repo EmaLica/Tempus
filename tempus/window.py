@@ -4,7 +4,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Gtk, Adw
 
-from .timer import Timer, SESSION_NAMES, SessionType
+from .timer import Timer, SESSION_NAMES, SessionType, TimerState
 
 RING_SIZE = 224
 RING_LINE = 10
@@ -40,6 +40,25 @@ class TempusWindow(Adw.ApplicationWindow):
         box.set_margin_start(24)
         box.set_margin_end(24)
 
+        # Session type pill buttons
+        pill = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
+        pill.add_css_class("linked")
+        pill.set_halign(Gtk.Align.CENTER)
+
+        self._session_btns: dict[SessionType, Gtk.ToggleButton] = {}
+        first = None
+        for stype, label in SESSION_NAMES.items():
+            btn = Gtk.ToggleButton(label=label)
+            if first is None:
+                first = btn
+            else:
+                btn.set_group(first)
+            btn.connect("toggled", self._on_session_toggled, stype)
+            pill.append(btn)
+            self._session_btns[stype] = btn
+        self._session_btns[SessionType.FOCUS].set_active(True)
+        box.append(pill)
+
         overlay = Gtk.Overlay()
         overlay.set_halign(Gtk.Align.CENTER)
         overlay.set_valign(Gtk.Align.CENTER)
@@ -66,6 +85,32 @@ class TempusWindow(Adw.ApplicationWindow):
         overlay.add_overlay(center)
         box.append(overlay)
 
+        # Controls
+        controls = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
+        controls.set_halign(Gtk.Align.CENTER)
+
+        self._reset_btn = Gtk.Button(icon_name="view-refresh-symbolic")
+        self._reset_btn.add_css_class("circular")
+        self._reset_btn.set_tooltip_text("Reset")
+        self._reset_btn.connect("clicked", lambda *_: self._do_reset())
+        controls.append(self._reset_btn)
+
+        self._start_btn = Gtk.Button()
+        self._start_btn.add_css_class("circular")
+        self._start_btn.add_css_class("suggested-action")
+        self._start_btn.set_size_request(64, 64)
+        self._start_btn.connect("clicked", lambda *_: self._do_start_pause())
+        self._update_start_icon()
+        controls.append(self._start_btn)
+
+        self._skip_btn = Gtk.Button(icon_name="media-skip-forward-symbolic")
+        self._skip_btn.add_css_class("circular")
+        self._skip_btn.set_tooltip_text("Skip session")
+        self._skip_btn.connect("clicked", lambda *_: self._do_skip())
+        controls.append(self._skip_btn)
+
+        box.append(controls)
+
         toolbar_view.set_content(box)
         self.set_content(toolbar_view)
 
@@ -87,6 +132,36 @@ class TempusWindow(Adw.ApplicationWindow):
             start = -math.pi / 2
             cr.arc(cx, cy, radius, start, start + progress * 2 * math.pi)
             cr.stroke()
+
+    def _on_session_toggled(self, btn: Gtk.ToggleButton, stype: SessionType):
+        if btn.get_active():
+            self.timer.set_session_type(stype)
+            self._session_label.set_text(SESSION_NAMES[stype])
+            self._update_start_icon()
+            self._drawing.queue_draw()
+
+    def _do_start_pause(self):
+        if self.timer.state == TimerState.RUNNING:
+            self.timer.pause()
+        else:
+            self.timer.start()
+        self._update_start_icon()
+
+    def _do_reset(self):
+        self.timer.reset()
+        self._update_start_icon()
+        self._drawing.queue_draw()
+
+    def _do_skip(self):
+        self.timer.reset()
+
+    def _update_start_icon(self):
+        icon = (
+            "media-playback-pause-symbolic"
+            if self.timer.state == TimerState.RUNNING
+            else "media-playback-start-symbolic"
+        )
+        self._start_btn.set_icon_name(icon)
 
     def _on_tick(self):
         self._time_label.set_label(self.timer.format_time())
