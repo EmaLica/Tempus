@@ -2,7 +2,7 @@ import math
 import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Gtk, Adw
+from gi.repository import Gtk, Adw, Gio
 
 from .timer import Timer, SESSION_NAMES, SessionType, TimerState
 
@@ -22,6 +22,7 @@ class TempusWindow(Adw.ApplicationWindow):
         super().__init__(**kwargs)
         self.timer = Timer()
         self.timer.connect_tick(self._on_tick)
+        self.timer.connect_finish(self._on_finish)
 
         self.set_title("Tempus")
         self.set_default_size(420, 660)
@@ -40,7 +41,6 @@ class TempusWindow(Adw.ApplicationWindow):
         box.set_margin_start(24)
         box.set_margin_end(24)
 
-        # Session type pill buttons
         pill = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
         pill.add_css_class("linked")
         pill.set_halign(Gtk.Align.CENTER)
@@ -85,7 +85,6 @@ class TempusWindow(Adw.ApplicationWindow):
         overlay.add_overlay(center)
         box.append(overlay)
 
-        # Controls
         controls = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
         controls.set_halign(Gtk.Align.CENTER)
 
@@ -110,6 +109,11 @@ class TempusWindow(Adw.ApplicationWindow):
         controls.append(self._skip_btn)
 
         box.append(controls)
+
+        self._dots_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        self._dots_box.set_halign(Gtk.Align.CENTER)
+        self._refresh_dots()
+        box.append(self._dots_box)
 
         toolbar_view.set_content(box)
         self.set_content(toolbar_view)
@@ -140,6 +144,29 @@ class TempusWindow(Adw.ApplicationWindow):
             self._update_start_icon()
             self._drawing.queue_draw()
 
+    def _on_finish(self):
+        self._update_start_icon()
+        self._refresh_dots()
+        self._send_notification()
+        self._auto_advance()
+        self._drawing.queue_draw()
+
+    def _auto_advance(self):
+        if self.timer.session_type == SessionType.FOCUS:
+            if self.timer.sessions_completed % self.timer.sessions_before_long_break == 0:
+                self._session_btns[SessionType.LONG_BREAK].set_active(True)
+            else:
+                self._session_btns[SessionType.SHORT_BREAK].set_active(True)
+        else:
+            self._session_btns[SessionType.FOCUS].set_active(True)
+
+    def _send_notification(self):
+        app = self.get_application()
+        notif = Gio.Notification.new("Tempus")
+        notif.set_body(f"{SESSION_NAMES[self.timer.session_type]} session complete!")
+        notif.set_icon(Gio.ThemedIcon.new("io.github.EmaLica.Tempus"))
+        app.send_notification("timer-done", notif)
+
     def _do_start_pause(self):
         if self.timer.state == TimerState.RUNNING:
             self.timer.pause()
@@ -154,6 +181,7 @@ class TempusWindow(Adw.ApplicationWindow):
 
     def _do_skip(self):
         self.timer.reset()
+        self._on_finish()
 
     def _update_start_icon(self):
         icon = (
@@ -162,6 +190,25 @@ class TempusWindow(Adw.ApplicationWindow):
             else "media-playback-start-symbolic"
         )
         self._start_btn.set_icon_name(icon)
+
+    def _refresh_dots(self):
+        child = self._dots_box.get_first_child()
+        while child:
+            nxt = child.get_next_sibling()
+            self._dots_box.remove(child)
+            child = nxt
+
+        done = self.timer.sessions_completed % self.timer.sessions_before_long_break
+        for i in range(self.timer.sessions_before_long_break):
+            dot = Gtk.Label()
+            if i < done:
+                r, g, b = SESSION_COLORS[SessionType.FOCUS]
+                dot.set_markup(
+                    f'<span color="#{int(r*255):02x}{int(g*255):02x}{int(b*255):02x}">●</span>'
+                )
+            else:
+                dot.set_markup('<span color="#808080">○</span>')
+            self._dots_box.append(dot)
 
     def _on_tick(self):
         self._time_label.set_label(self.timer.format_time())
