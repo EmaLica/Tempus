@@ -1,7 +1,8 @@
+import re
 import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Gtk, Adw, GObject
+from gi.repository import Gtk, Adw, Gio, GObject
 
 
 class TodoItem(GObject.Object):
@@ -33,6 +34,18 @@ class TodoPanel(Gtk.Box):
         title.set_hexpand(True)
         title.set_halign(Gtk.Align.START)
         header.append(title)
+
+        load_btn = Gtk.Button(icon_name="document-open-symbolic")
+        load_btn.add_css_class("flat")
+        load_btn.set_tooltip_text("Load from Markdown file")
+        load_btn.connect("clicked", self._on_load)
+        header.append(load_btn)
+
+        save_btn = Gtk.Button(icon_name="document-save-symbolic")
+        save_btn.add_css_class("flat")
+        save_btn.set_tooltip_text("Export as Markdown file")
+        save_btn.connect("clicked", self._on_save)
+        header.append(save_btn)
 
         self.append(header)
         self.append(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
@@ -128,3 +141,69 @@ class TodoPanel(Gtk.Box):
     def _on_delete(self, _btn, item: TodoItem, row: Adw.ActionRow):
         self.items.remove(item)
         self.list_box.remove(row)
+
+    def load_from_markdown(self, path: str):
+        try:
+            with open(path, encoding="utf-8") as fh:
+                content = fh.read()
+        except OSError as exc:
+            self._show_error(f"Could not open file:\n{exc}")
+            return
+
+        self._clear()
+        for line in content.splitlines():
+            line = line.strip()
+            if m := re.match(r"^- \[( |x|X)\] (.+)$", line):
+                done = m.group(1).lower() == "x"
+                self.add_item(TodoItem(m.group(2).strip(), done))
+            elif m := re.match(r"^[-*+] (.+)$", line):
+                self.add_item(TodoItem(m.group(1).strip()))
+
+    def to_markdown(self) -> str:
+        lines = ["# Todo", ""]
+        for item in self.items:
+            mark = "x" if item.done else " "
+            lines.append(f"- [{mark}] {item.text}")
+        return "\n".join(lines) + "\n"
+
+    def _on_load(self, _btn):
+        dialog = Gtk.FileDialog()
+        dialog.set_title("Load Todo from Markdown")
+        f = Gtk.FileFilter()
+        f.set_name("Markdown files (*.md)")
+        f.add_pattern("*.md")
+        f.add_pattern("*.markdown")
+        store = Gio.ListStore.new(Gtk.FileFilter)
+        store.append(f)
+        dialog.set_filters(store)
+        dialog.open(self.get_root(), None, self._on_load_done)
+
+    def _on_load_done(self, dialog: Gtk.FileDialog, result):
+        try:
+            file = dialog.open_finish(result)
+            if file:
+                self.load_from_markdown(file.get_path())
+        except Exception:
+            pass
+
+    def _on_save(self, _btn):
+        dialog = Gtk.FileDialog()
+        dialog.set_title("Save Todo as Markdown")
+        dialog.set_initial_name("todo.md")
+        dialog.save(self.get_root(), None, self._on_save_done)
+
+    def _on_save_done(self, dialog: Gtk.FileDialog, result):
+        try:
+            file = dialog.save_finish(result)
+            if file:
+                with open(file.get_path(), "w", encoding="utf-8") as fh:
+                    fh.write(self.to_markdown())
+        except Exception:
+            pass
+
+    def _show_error(self, message: str):
+        dlg = Adw.AlertDialog()
+        dlg.set_heading("Error")
+        dlg.set_body(message)
+        dlg.add_response("ok", "OK")
+        dlg.present(self.get_root())
