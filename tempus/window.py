@@ -5,6 +5,7 @@ gi.require_version("Adw", "1")
 from gi.repository import Gtk, Adw, Gio
 
 from .timer import Timer, SESSION_NAMES, SessionType, TimerState
+from .todo import TodoPanel
 
 RING_SIZE = 224
 RING_LINE = 10
@@ -32,7 +33,15 @@ class TempusWindow(Adw.ApplicationWindow):
     def _build_ui(self):
         toolbar_view = Adw.ToolbarView()
         header = Adw.HeaderBar()
+
+        self._todo_btn = Gtk.ToggleButton(icon_name="view-list-symbolic")
+        self._todo_btn.set_tooltip_text("Toggle Todo list")
+        self._todo_btn.connect("toggled", self._on_todo_toggled)
+        header.pack_end(self._todo_btn)
+
         toolbar_view.add_top_bar(header)
+
+        body = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=20)
         box.set_vexpand(True)
@@ -115,7 +124,18 @@ class TempusWindow(Adw.ApplicationWindow):
         self._refresh_dots()
         box.append(self._dots_box)
 
-        toolbar_view.set_content(box)
+        body.append(box)
+        body.append(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
+
+        self._todo_revealer = Gtk.Revealer()
+        self._todo_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_UP)
+        self._todo_revealer.set_reveal_child(False)
+        self._todo_panel = TodoPanel()
+        self._todo_panel.set_size_request(-1, 300)
+        self._todo_revealer.set_child(self._todo_panel)
+        body.append(self._todo_revealer)
+
+        toolbar_view.set_content(body)
         self.set_content(toolbar_view)
 
     def _draw_ring(self, _area, cr, width, height):
@@ -209,6 +229,21 @@ class TempusWindow(Adw.ApplicationWindow):
             else:
                 dot.set_markup('<span color="#808080">○</span>')
             self._dots_box.append(dot)
+
+    def _on_todo_toggled(self, btn: Gtk.ToggleButton):
+        self._todo_revealer.set_reveal_child(btn.get_active())
+
+    def _load_settings(self):
+        try:
+            s = Gio.Settings.new("io.github.EmaLica.Tempus")
+            self.timer.durations[SessionType.FOCUS] = s.get_int("focus-duration") * 60
+            self.timer.durations[SessionType.SHORT_BREAK] = s.get_int("short-break-duration") * 60
+            self.timer.durations[SessionType.LONG_BREAK] = s.get_int("long-break-duration") * 60
+            self.timer.durations[SessionType.CUSTOM] = s.get_int("custom-duration") * 60
+            self.timer.sessions_before_long_break = s.get_int("sessions-before-long-break")
+            self.timer.reload_durations()
+        except Exception:
+            pass
 
     def _on_tick(self):
         self._time_label.set_label(self.timer.format_time())
