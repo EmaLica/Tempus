@@ -33,7 +33,6 @@ class TempusApplication(Adw.Application):
             win = TempusWindow(application=self)
         win.present()
 
-
     def _on_about(self, *_):
         about = Adw.AboutWindow(
             transient_for=self.props.active_window,
@@ -44,7 +43,7 @@ class TempusApplication(Adw.Application):
             website="https://github.com/EmaLica/Tempus",
             issue_url="https://github.com/EmaLica/Tempus/issues",
             license_type=Gtk.License.GPL_3_0,
-            copyright="© 2025 EmaLica",
+            copyright="© 2026 EmaLica",
             comments="A focused Pomodoro timer for GNOME",
         )
         about.present()

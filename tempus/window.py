@@ -27,6 +27,7 @@ class TempusWindow(Adw.ApplicationWindow):
 
         self.set_title("Tempus")
         self.set_default_size(420, 660)
+        self._load_settings()
         self._build_ui()
         self._on_tick()
 
