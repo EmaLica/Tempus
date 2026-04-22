@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schemalist gettext-domain="tempus">
+  <schema id="io.github.EmaLica.Tempus" path="/io/github/EmaLica/Tempus/">
+
+    <key name="focus-duration" type="i">
+      <default>25</default>
+      <summary>Focus session duration (minutes)</summary>
+      <range min="1" max="90"/>
+    </key>
+
+    <key name="short-break-duration" type="i">
+      <default>5</default>
+      <summary>Short break duration (minutes)</summary>
+      <range min="1" max="30"/>
+    </key>
+
+    <key name="long-break-duration" type="i">
+      <default>15</default>
+      <summary>Long break duration (minutes)</summary>
+      <range min="1" max="60"/>
+    </key>
+
+    <key name="custom-duration" type="i">
+      <default>10</default>
+      <summary>Custom session duration (minutes)</summary>
+      <range min="1" max="120"/>
+    </key>
+
+    <key name="sessions-before-long-break" type="i">
+      <default>4</default>
+      <summary>Number of focus sessions before a long break</summary>
+      <range min="1" max="10"/>
+    </key>
+
+  </schema>
+</schemalist>
