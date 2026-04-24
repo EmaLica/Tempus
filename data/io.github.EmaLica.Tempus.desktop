@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=Tempus
+GenericName=Pomodoro Timer
+Comment=A focused Pomodoro timer for GNOME
+Exec=tempus
+Icon=io.github.EmaLica.Tempus
+Terminal=false
+Type=Application
+Categories=GNOME;GTK;Utility;
+Keywords=pomodoro;timer;focus;productivity;todo;
+StartupNotify=true
+StartupWMClass=tempus
+X-GNOME-UsesNotifications=true
