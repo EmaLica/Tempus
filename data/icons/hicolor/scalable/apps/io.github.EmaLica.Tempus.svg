@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Outer shadow/background -->
+  <circle cx="64" cy="68" r="52" fill="rgba(0,0,0,0.12)"/>
+  <!-- Main tomato body -->
+  <circle cx="64" cy="64" r="52" fill="#e74c3c"/>
+  <!-- Highlight -->
+  <circle cx="48" cy="44" r="14" fill="rgba(255,255,255,0.18)"/>
+  <!-- Stem -->
+  <rect x="61" y="10" width="6" height="16" rx="3" fill="#27ae60"/>
+  <ellipse cx="64" cy="14" rx="10" ry="5" fill="#2ecc71"/>
+  <!-- Clock ring -->
+  <circle cx="64" cy="68" r="34" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="5"/>
+  <!-- Clock ticks -->
+  <line x1="64" y1="36" x2="64" y2="42" stroke="rgba(255,255,255,0.7)" stroke-width="3" stroke-linecap="round"/>
+  <line x1="64" y1="94" x2="64" y2="100" stroke="rgba(255,255,255,0.7)" stroke-width="3" stroke-linecap="round"/>
+  <line x1="32" y1="68" x2="38" y2="68" stroke="rgba(255,255,255,0.7)" stroke-width="3" stroke-linecap="round"/>
+  <line x1="90" y1="68" x2="96" y2="68" stroke="rgba(255,255,255,0.7)" stroke-width="3" stroke-linecap="round"/>
+  <!-- Minute hand -->
+  <line x1="64" y1="68" x2="64" y2="44" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <!-- Hour hand -->
+  <line x1="64" y1="68" x2="80" y2="68" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <!-- Center dot -->
+  <circle cx="64" cy="68" r="4" fill="white"/>
+</svg>
