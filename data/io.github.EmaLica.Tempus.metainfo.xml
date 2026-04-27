@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.EmaLica.Tempus</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>Tempus</name>
+  <summary>A focused Pomodoro timer for GNOME</summary>
+
+  <description>
+    <p>
+      Tempus is a Pomodoro timer designed for GNOME. Stay focused with
+      customizable work sessions and breaks, and manage your tasks with the
+      built-in todo list that supports Markdown import and export.
+    </p>
+    <p>Features:</p>
+    <ul>
+      <li>Focus, Short Break, Long Break, and Custom session types</li>
+      <li>Customizable durations via Preferences</li>
+      <li>Automatic session cycle with long-break suggestions</li>
+      <li>Todo list with Markdown file import and export</li>
+      <li>Desktop notifications when a session ends</li>
+    </ul>
+  </description>
+
+  <launchable type="desktop-id">io.github.EmaLica.Tempus.desktop</launchable>
+
+  <url type="homepage">https://github.com/EmaLica/Tempus</url>
+  <url type="bugtracker">https://github.com/EmaLica/Tempus/issues</url>
+
+  <developer id="io.github.EmaLica">
+    <name>EmaLica</name>
+  </developer>
+
+  <releases>
+    <release version="0.1.0" date="2025-05-21">
+      <description>
+        <p>Initial release.</p>
+      </description>
+    </release>
+  </releases>
+
+  <content_rating type="oars-1.1"/>
+
+  <recommends>
+    <display_length compare="ge">360</display_length>
+  </recommends>
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </supports>
+</component>
