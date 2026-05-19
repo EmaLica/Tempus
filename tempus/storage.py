@@ -14,10 +14,9 @@ def load_tasks() -> list[dict]:
 
 def save_tasks(tasks: list[dict]) -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    (DATA_DIR / "tasks.json").write_text(
-        json.dumps(tasks, indent=2, ensure_ascii=False),
-        encoding="utf-8",
-    )
+    tmp = DATA_DIR / "tasks.json.tmp"
+    tmp.write_text(json.dumps(tasks, indent=2, ensure_ascii=False), encoding="utf-8")
+    tmp.replace(DATA_DIR / "tasks.json")
 
 
 def load_history() -> list[dict]:
@@ -32,7 +31,6 @@ def append_history(entry: dict) -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     history = load_history()
     history.append(entry)
-    (DATA_DIR / "history.json").write_text(
-        json.dumps(history, indent=2, ensure_ascii=False),
-        encoding="utf-8",
-    )
+    tmp = DATA_DIR / "history.json.tmp"
+    tmp.write_text(json.dumps(history, indent=2, ensure_ascii=False), encoding="utf-8")
+    tmp.replace(DATA_DIR / "history.json")
