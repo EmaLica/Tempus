@@ -15,7 +15,7 @@ def _parse(raw: list[dict]) -> list[HistoryEntry]:
     for r in raw:
         try:
             out.append(HistoryEntry(
-                ts=r["ts"],
+                ts=int(r["ts"]),
                 session_type=r.get("session_type", "focus"),
                 duration=r.get("duration", 0),
                 task_id=r.get("task_id"),
@@ -39,10 +39,10 @@ def total_focus_seconds(entries: list[HistoryEntry]) -> int:
     return sum(e.duration for e in entries if e.session_type == "focus")
 
 
-def per_task_seconds(entries: list[HistoryEntry]) -> dict:
+def per_task_seconds(entries: list[HistoryEntry]) -> dict[str, int]:
     result: dict[str, int] = {}
     for e in entries:
-        if e.task_id is None:
+        if e.task_id is None or e.session_type != "focus":
             continue
         result[e.task_id] = result.get(e.task_id, 0) + e.duration
     return result

@@ -57,6 +57,28 @@ def test_per_task_seconds_groups_by_task():
     assert None not in result
 
 
+def test_total_focus_seconds_excludes_non_focus():
+    from tempus import history
+    today = _today_ts()
+    entries = [
+        {"ts": today + 10, "session_type": "focus", "duration": 1500, "task_id": None},
+        {"ts": today + 20, "session_type": "short_break", "duration": 300, "task_id": None},
+    ]
+    result = history.total_focus_seconds(history.today_entries(entries))
+    assert result == 1500
+
+
+def test_per_task_seconds_excludes_break_sessions():
+    from tempus import history
+    today = _today_ts()
+    entries = [
+        {"ts": today + 10, "session_type": "focus", "duration": 1500, "task_id": "x"},
+        {"ts": today + 20, "session_type": "short_break", "duration": 300, "task_id": "x"},
+    ]
+    result = history.per_task_seconds(history.today_entries(entries))
+    assert result["x"] == 1500
+
+
 def test_format_duration_hours_and_minutes():
     from tempus import history
     assert history.format_duration(3600) == "1h 0m"
