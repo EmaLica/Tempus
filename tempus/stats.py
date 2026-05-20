@@ -20,6 +20,7 @@ class StatsPanel(Gtk.Box):
         scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
 
         self._inner = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        self._scroll = scroll
         scroll.set_child(self._inner)
         self.append(scroll)
 
@@ -30,13 +31,17 @@ class StatsPanel(Gtk.Box):
             self._inner.remove(child)
             child = nxt
 
+        adj = self._scroll.get_vadjustment()
+        if adj:
+            adj.set_value(0.0)
+
         raw_history = storage.load_history()
         raw_tasks = storage.load_tasks()
         today = hist.today_entries(raw_history)
         total_secs = hist.total_focus_seconds(today)
         by_task = hist.per_task_seconds(today)
 
-        if not today:
+        if not today or total_secs == 0:
             status = Adw.StatusPage()
             status.set_icon_name("preferences-system-time-symbolic")
             status.set_title("No sessions yet today")
@@ -70,8 +75,12 @@ class StatsPanel(Gtk.Box):
         if not by_task:
             lbl = Gtk.Label(label="No task was active during today's sessions.")
             lbl.add_css_class("dim-label")
-            lbl.set_margin_top(16)
-            lbl.set_margin_bottom(16)
+            lbl.set_halign(Gtk.Align.CENTER)
+            lbl.set_margin_top(24)
+            lbl.set_margin_bottom(24)
+            lbl.set_margin_start(12)
+            lbl.set_margin_end(12)
+            lbl.set_wrap(True)
             self._inner.append(lbl)
             return
 
@@ -105,7 +114,6 @@ class StatsPanel(Gtk.Box):
             bar.set_value(secs / max_secs)
             bar.set_size_request(120, -1)
             bar.set_valign(Gtk.Align.CENTER)
-            bar.add_css_class("accent")
             row.add_suffix(bar)
 
             group.add(row)
