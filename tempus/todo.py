@@ -29,6 +29,7 @@ class TodoPanel(Gtk.Box):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.items: list[TodoItem] = []
         self._active_id: str | None = None
+        self._active_row: Adw.ActionRow | None = None
         self._badge_labels: dict[str, Gtk.Label] = {}
         self._build_ui()
         self._load_saved()
@@ -61,6 +62,9 @@ class TodoPanel(Gtk.Box):
         return self._active_id
 
     def set_active(self, item_id: str | None) -> None:
+        if self._active_row is not None:
+            self._active_row.remove_css_class("accent")
+            self._active_row = None
         self._active_id = item_id
 
     def add_pomodoro(self, task_id: str) -> None:
@@ -72,7 +76,8 @@ class TodoPanel(Gtk.Box):
                     label.set_label(f"● {item.pomodoros}")
                     label.set_visible(True)
                 self._save()
-                break
+                return
+        print(f"[tempus] add_pomodoro: task {task_id!r} not found, session not attributed")
 
     def _build_ui(self):
         header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
@@ -170,7 +175,7 @@ class TodoPanel(Gtk.Box):
             badge.set_label(f"● {item.pomodoros}")
             badge.set_visible(True)
         else:
-            badge.set_label("● 0")
+            badge.set_label("")
             badge.set_visible(False)
         self._badge_labels[item.id] = badge
         row.add_suffix(badge)
@@ -187,11 +192,15 @@ class TodoPanel(Gtk.Box):
         return row
 
     def _on_row_activated(self, row: Adw.ActionRow, item: TodoItem) -> None:
+        if self._active_row is not None:
+            self._active_row.remove_css_class("accent")
+
         if self._active_id == item.id:
             self._active_id = None
-            row.remove_css_class("accent")
+            self._active_row = None
         else:
             self._active_id = item.id
+            self._active_row = row
             row.add_css_class("accent")
 
     def _clear(self):
@@ -243,6 +252,7 @@ class TodoPanel(Gtk.Box):
                 self.add_item(TodoItem(m.group(2).strip(), done))
             elif m := re.match(r"^[-*+] (.+)$", line):
                 self.add_item(TodoItem(m.group(1).strip()))
+        self._save()
 
     def to_markdown(self) -> str:
         lines = ["# Todo", ""]
