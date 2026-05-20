@@ -1,17 +1,25 @@
 import re
+import uuid
 import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Gtk, Adw, Gio, GObject, GLib
 
+from . import storage
+
 
 class TodoItem(GObject.Object):
     __gtype_name__ = "TempusTodoItem"
 
-    def __init__(self, text: str, done: bool = False):
+    def __init__(self, text: str, done: bool = False,
+                 item_id: str | None = None, pomodoros: int = 0,
+                 estimate: int = 0):
         super().__init__()
+        self.id = item_id or str(uuid.uuid4())
         self.text = text
         self.done = done
+        self.pomodoros = pomodoros
+        self.estimate = estimate
 
 
 class TodoPanel(Gtk.Box):
@@ -20,7 +28,51 @@ class TodoPanel(Gtk.Box):
     def __init__(self):
         super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.items: list[TodoItem] = []
+        self._active_id: str | None = None
+        self._badge_labels: dict[str, Gtk.Label] = {}
         self._build_ui()
+        self._load_saved()
+
+    def _load_saved(self) -> None:
+        raw = storage.load_tasks()
+        for r in raw:
+            item = TodoItem(
+                text=r.get("text", ""),
+                done=r.get("done", False),
+                item_id=r.get("id"),
+                pomodoros=r.get("pomodoros", 0),
+                estimate=r.get("estimate", 0),
+            )
+            self.add_item(item)
+
+    def _save(self) -> None:
+        storage.save_tasks([
+            {
+                "id": it.id,
+                "text": it.text,
+                "done": it.done,
+                "pomodoros": it.pomodoros,
+                "estimate": it.estimate,
+            }
+            for it in self.items
+        ])
+
+    def get_active_id(self) -> str | None:
+        return self._active_id
+
+    def set_active(self, item_id: str | None) -> None:
+        self._active_id = item_id
+
+    def add_pomodoro(self, task_id: str) -> None:
+        for item in self.items:
+            if item.id == task_id:
+                item.pomodoros += 1
+                label = self._badge_labels.get(task_id)
+                if label:
+                    label.set_label(f"● {item.pomodoros}")
+                    label.set_visible(True)
+                self._save()
+                break
 
     def _build_ui(self):
         header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
@@ -109,16 +161,43 @@ class TodoPanel(Gtk.Box):
         check.connect("toggled", self._on_toggle, item, row)
         row.add_prefix(check)
 
+        badge = Gtk.Label()
+        badge.add_css_class("caption")
+        badge.add_css_class("accent")
+        badge.set_valign(Gtk.Align.CENTER)
+        badge.set_margin_end(4)
+        if item.pomodoros > 0:
+            badge.set_label(f"● {item.pomodoros}")
+            badge.set_visible(True)
+        else:
+            badge.set_label("● 0")
+            badge.set_visible(False)
+        self._badge_labels[item.id] = badge
+        row.add_suffix(badge)
+
         del_btn = Gtk.Button(icon_name="user-trash-symbolic")
         del_btn.add_css_class("flat")
         del_btn.set_valign(Gtk.Align.CENTER)
         del_btn.connect("clicked", self._on_delete, item, row)
         row.add_suffix(del_btn)
 
+        row.set_activatable(True)
+        row.connect("activated", self._on_row_activated, item)
+
         return row
+
+    def _on_row_activated(self, row: Adw.ActionRow, item: TodoItem) -> None:
+        if self._active_id == item.id:
+            self._active_id = None
+            row.remove_css_class("accent")
+        else:
+            self._active_id = item.id
+            row.add_css_class("accent")
 
     def _clear(self):
         self.items.clear()
+        self._active_id = None
+        self._badge_labels.clear()
         child = self.list_box.get_first_child()
         while child:
             nxt = child.get_next_sibling()
@@ -130,6 +209,7 @@ class TodoPanel(Gtk.Box):
         if text:
             self.add_item(TodoItem(text))
             self.entry.set_text("")
+            self._save()
 
     def _on_toggle(self, check: Gtk.CheckButton, item: TodoItem, row: Adw.ActionRow):
         item.done = check.get_active()
@@ -137,10 +217,15 @@ class TodoPanel(Gtk.Box):
             row.add_css_class("dim-label")
         else:
             row.remove_css_class("dim-label")
+        self._save()
 
     def _on_delete(self, _btn, item: TodoItem, row: Adw.ActionRow):
+        if self._active_id == item.id:
+            self._active_id = None
+        self._badge_labels.pop(item.id, None)
         self.items.remove(item)
         self.list_box.remove(row)
+        self._save()
 
     def load_from_markdown(self, path: str):
         try:
