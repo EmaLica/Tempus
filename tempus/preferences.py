@@ -101,7 +101,9 @@ class TempusPreferences(Adw.PreferencesWindow):
     def _apply_to_timer(self, key: str, value: int):
         mapping = {v[0]: k for k, v in SETTINGS_KEYS.items()}
         if key in mapping:
-            self.timer.durations[mapping[key]] = value * 60
-            self.timer.reload_durations()
+            stype = mapping[key]
+            self.timer.durations[stype] = value * 60
+            if stype == self.timer.session_type:
+                self.timer.reload_durations()
         elif key == "sessions-before-long-break":
             self.timer.sessions_before_long_break = value

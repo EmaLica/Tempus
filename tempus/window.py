@@ -174,7 +174,8 @@ class TempusWindow(Adw.ApplicationWindow):
 
     def _auto_advance(self):
         if self.timer.session_type == SessionType.FOCUS:
-            if self.timer.sessions_completed % self.timer.sessions_before_long_break == 0:
+            completed = self.timer.sessions_completed
+            if completed > 0 and completed % self.timer.sessions_before_long_break == 0:
                 self._session_btns[SessionType.LONG_BREAK].set_active(True)
             else:
                 self._session_btns[SessionType.SHORT_BREAK].set_active(True)
@@ -202,7 +203,10 @@ class TempusWindow(Adw.ApplicationWindow):
 
     def _do_skip(self):
         self.timer.reset()
-        self._on_finish()
+        self._update_start_icon()
+        self._refresh_dots()
+        self._auto_advance()
+        self._drawing.queue_draw()
 
     def _update_start_icon(self):
         icon = (
