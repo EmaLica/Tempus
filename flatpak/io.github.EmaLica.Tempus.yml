@@ -1,6 +1,6 @@
 app-id: io.github.EmaLica.Tempus
 runtime: org.gnome.Platform
-runtime-version: "48"
+runtime-version: "50"
 sdk: org.gnome.Sdk
 command: tempus
 
@@ -16,7 +16,7 @@ modules:
   - name: tempus
     buildsystem: simple
     build-commands:
-      - pip3 install --no-index --find-links=. --prefix=/app .
+      - pip3 install --no-build-isolation --no-index --find-links=. --prefix=/app .
       - install -Dm644 data/io.github.EmaLica.Tempus.gschema.xml
           /app/share/glib-2.0/schemas/io.github.EmaLica.Tempus.gschema.xml
       - glib-compile-schemas /app/share/glib-2.0/schemas
