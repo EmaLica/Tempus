@@ -2,7 +2,7 @@ import re
 import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Gtk, Adw, Gio, GObject
+from gi.repository import Gtk, Adw, Gio, GObject, GLib
 
 
 class TodoItem(GObject.Object):
@@ -99,7 +99,7 @@ class TodoPanel(Gtk.Box):
 
     def _build_row(self, item: TodoItem) -> Adw.ActionRow:
         row = Adw.ActionRow()
-        row.set_title(item.text)
+        row.set_title(GLib.markup_escape_text(item.text))
         if item.done:
             row.add_css_class("dim-label")
 
