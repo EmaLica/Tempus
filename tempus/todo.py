@@ -61,6 +61,14 @@ class TodoPanel(Gtk.Box):
     def get_active_id(self) -> str | None:
         return self._active_id
 
+    def get_active_item(self):
+        if self._active_id is None:
+            return None
+        for item in self.items:
+            if item.id == self._active_id:
+                return item
+        return None
+
     def set_active(self, item_id: str | None) -> None:
         if self._active_row is not None:
             self._active_row.remove_css_class("accent")

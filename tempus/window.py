@@ -1,5 +1,4 @@
 import math
-import subprocess
 import time
 import gi
 gi.require_version("Gtk", "4.0")
@@ -31,8 +30,8 @@ class TempusWindow(Adw.ApplicationWindow):
 
         self.set_title("Tempus")
         self.set_default_size(420, 660)
-        self._dnd_prev: str = ""
         self._settings: Gio.Settings | None = None
+        self._restore_dnd_if_crashed()
         self._load_settings()
         self._build_ui()
         self.timer.connect_tick(self._on_tick)
@@ -46,7 +45,7 @@ class TempusWindow(Adw.ApplicationWindow):
         main_toolbar = Adw.ToolbarView()
         header = Adw.HeaderBar()
 
-        stats_btn = Gtk.Button(icon_name="org.gnome.Calendar-symbolic")
+        stats_btn = Gtk.Button(icon_name="x-office-calendar-symbolic")
         stats_btn.set_tooltip_text("Today's focus stats")
         stats_btn.connect("clicked", self._on_stats_clicked)
         header.pack_start(stats_btn)
@@ -177,6 +176,7 @@ class TempusWindow(Adw.ApplicationWindow):
         stats_toolbar.set_content(self._stats_panel)
 
         self._stats_page = Adw.NavigationPage.new(stats_toolbar, "Today")
+        self._stats_page.set_title("Today")
         self._nav.add(self._stats_page)
 
     def _draw_ring(self, _area, cr, width, height):
@@ -211,12 +211,14 @@ class TempusWindow(Adw.ApplicationWindow):
         self._send_notification()
         if self.timer.session_type == SessionType.FOCUS:
             active_id = self._todo_panel.get_active_id()
-            storage.append_history({
+            entry: dict = {
                 "ts": int(time.time()),
                 "session_type": "focus",
                 "duration": self.timer.duration,
-                "task_id": active_id,
-            })
+            }
+            if active_id:
+                entry["task_id"] = active_id
+            storage.append_history(entry)
             if active_id:
                 self._todo_panel.add_pomodoro(active_id)
         self._dnd_set_focus_mode(False)
@@ -258,6 +260,7 @@ class TempusWindow(Adw.ApplicationWindow):
         self._drawing.queue_draw()
 
     def _do_skip(self):
+        self._dnd_set_focus_mode(False)
         self.timer.reset()
         self._update_start_icon()
         self._refresh_dots()
@@ -309,27 +312,29 @@ class TempusWindow(Adw.ApplicationWindow):
             return
 
         try:
+            notif = Gio.Settings.new("org.gnome.desktop.notifications")
+            lock = storage.DATA_DIR / "dnd.lock"
             if entering:
-                result = subprocess.run(
-                    ["gsettings", "get",
-                     "org.gnome.desktop.notifications", "show-banners"],
-                    capture_output=True, text=True, check=False,
-                )
-                self._dnd_prev = result.stdout.strip()
-                subprocess.run(
-                    ["gsettings", "set",
-                     "org.gnome.desktop.notifications", "show-banners", "false"],
-                    capture_output=True, check=False,
-                )
+                prev = notif.get_boolean("show-banners")
+                lock.parent.mkdir(parents=True, exist_ok=True)
+                lock.write_text("true" if prev else "false", encoding="utf-8")
+                notif.set_boolean("show-banners", False)
             else:
-                if self._dnd_prev:
-                    subprocess.run(
-                        ["gsettings", "set",
-                         "org.gnome.desktop.notifications", "show-banners",
-                         self._dnd_prev],
-                        capture_output=True, check=False,
-                    )
-                    self._dnd_prev = ""
+                if lock.exists():
+                    prev_str = lock.read_text(encoding="utf-8").strip()
+                    notif.set_boolean("show-banners", prev_str == "true")
+                    lock.unlink()
+        except Exception:
+            pass
+
+    def _restore_dnd_if_crashed(self) -> None:
+        try:
+            lock = storage.DATA_DIR / "dnd.lock"
+            if lock.exists():
+                prev_str = lock.read_text(encoding="utf-8").strip()
+                notif = Gio.Settings.new("org.gnome.desktop.notifications")
+                notif.set_boolean("show-banners", prev_str == "true")
+                lock.unlink()
         except Exception:
             pass
 
@@ -354,12 +359,10 @@ class TempusWindow(Adw.ApplicationWindow):
         self._drawing.queue_draw()
 
         if self.timer.session_type == SessionType.FOCUS:
-            active_id = self._todo_panel.get_active_id()
-            if active_id:
-                for item in self._todo_panel.items:
-                    if item.id == active_id:
-                        text = item.text
-                        truncated = text[:22] + "…" if len(text) > 22 else text
-                        self._session_label.set_label(truncated)
-                        return
+            active = self._todo_panel.get_active_item()
+            if active:
+                text = active.text
+                truncated = text[:22] + "…" if len(text) > 22 else text
+                self._session_label.set_label(truncated)
+                return
         self._session_label.set_label(SESSION_NAMES[self.timer.session_type])
