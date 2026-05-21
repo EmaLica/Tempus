@@ -7,3 +7,4 @@ build/
 build-dir/
 .flatpak-builder/
 data/gschemas.compiled
+FLATHUB_CHECKLIST.md
