@@ -1,4 +1,6 @@
 import math
+import subprocess
+import time
 import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -7,6 +9,8 @@ from gi.repository import Gtk, Adw, Gio
 from .timer import Timer, SESSION_NAMES, SessionType, TimerState
 from .todo import TodoPanel
 from .preferences import TempusPreferences
+from .stats import StatsPanel
+from . import storage
 
 RING_SIZE = 224
 RING_LINE = 10
@@ -27,17 +31,28 @@ class TempusWindow(Adw.ApplicationWindow):
 
         self.set_title("Tempus")
         self.set_default_size(420, 660)
+        self._dnd_prev: str = ""
+        self._settings: Gio.Settings | None = None
         self._load_settings()
         self._build_ui()
         self.timer.connect_tick(self._on_tick)
         self._on_tick()
 
     def _build_ui(self):
-        toolbar_view = Adw.ToolbarView()
+        self._nav = Adw.NavigationView()
+        self.set_content(self._nav)
+
+        # ── Main timer page ──────────────────────────────────────────────────────
+        main_toolbar = Adw.ToolbarView()
         header = Adw.HeaderBar()
 
+        stats_btn = Gtk.Button(icon_name="org.gnome.Calendar-symbolic")
+        stats_btn.set_tooltip_text("Today's focus stats")
+        stats_btn.connect("clicked", self._on_stats_clicked)
+        header.pack_start(stats_btn)
+
         self._todo_btn = Gtk.ToggleButton(icon_name="view-list-symbolic")
-        self._todo_btn.set_tooltip_text("Toggle Todo list")
+        self._todo_btn.set_tooltip_text("Toggle task list")
         self._todo_btn.connect("toggled", self._on_todo_toggled)
         header.pack_end(self._todo_btn)
 
@@ -52,7 +67,7 @@ class TempusWindow(Adw.ApplicationWindow):
         pref_action.connect("activate", self._on_preferences)
         self.add_action(pref_action)
 
-        toolbar_view.add_top_bar(header)
+        main_toolbar.add_top_bar(header)
 
         body = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
@@ -147,9 +162,22 @@ class TempusWindow(Adw.ApplicationWindow):
         self._todo_revealer.set_child(self._todo_panel)
         body.append(self._todo_revealer)
 
-        toolbar_view.set_content(body)
-        self.set_content(toolbar_view)
+        main_toolbar.set_content(body)
         self._session_btns[SessionType.FOCUS].set_active(True)
+
+        main_page = Adw.NavigationPage.new(main_toolbar, "Tempus")
+        self._nav.add(main_page)
+
+        # ── Stats page ───────────────────────────────────────────────────────────
+        stats_toolbar = Adw.ToolbarView()
+        stats_header = Adw.HeaderBar()
+        stats_toolbar.add_top_bar(stats_header)
+
+        self._stats_panel = StatsPanel()
+        stats_toolbar.set_content(self._stats_panel)
+
+        self._stats_page = Adw.NavigationPage.new(stats_toolbar, "Today")
+        self._nav.add(self._stats_page)
 
     def _draw_ring(self, _area, cr, width, height):
         cx, cy = width / 2, height / 2
@@ -173,14 +201,25 @@ class TempusWindow(Adw.ApplicationWindow):
     def _on_session_toggled(self, btn: Gtk.ToggleButton, stype: SessionType):
         if btn.get_active():
             self.timer.set_session_type(stype)
-            self._session_label.set_text(SESSION_NAMES[stype])
             self._update_start_icon()
             self._drawing.queue_draw()
+            self._on_tick()
 
     def _on_finish(self):
         self._update_start_icon()
         self._refresh_dots()
         self._send_notification()
+        if self.timer.session_type == SessionType.FOCUS:
+            active_id = self._todo_panel.get_active_id()
+            storage.append_history({
+                "ts": int(time.time()),
+                "session_type": "focus",
+                "duration": self.timer.duration,
+                "task_id": active_id,
+            })
+            if active_id:
+                self._todo_panel.add_pomodoro(active_id)
+        self._dnd_set_focus_mode(False)
         self._auto_advance()
         self._drawing.queue_draw()
 
@@ -204,11 +243,16 @@ class TempusWindow(Adw.ApplicationWindow):
     def _do_start_pause(self):
         if self.timer.state == TimerState.RUNNING:
             self.timer.pause()
+            if self.timer.session_type == SessionType.FOCUS:
+                self._dnd_set_focus_mode(False)
         else:
             self.timer.start()
+            if self.timer.session_type == SessionType.FOCUS:
+                self._dnd_set_focus_mode(True)
         self._update_start_icon()
 
     def _do_reset(self):
+        self._dnd_set_focus_mode(False)
         self.timer.reset()
         self._update_start_icon()
         self._drawing.queue_draw()
@@ -251,12 +295,51 @@ class TempusWindow(Adw.ApplicationWindow):
         prefs = TempusPreferences(timer=self.timer, transient_for=self)
         prefs.present()
 
+    def _on_stats_clicked(self, _btn) -> None:
+        self._stats_panel.refresh()
+        self._nav.push(self._stats_page)
+
+    def _dnd_set_focus_mode(self, entering: bool) -> None:
+        if self._settings is None:
+            return
+        try:
+            if not self._settings.get_boolean("dnd-during-focus"):
+                return
+        except Exception:
+            return
+
+        try:
+            if entering:
+                result = subprocess.run(
+                    ["gsettings", "get",
+                     "org.gnome.desktop.notifications", "show-banners"],
+                    capture_output=True, text=True, check=False,
+                )
+                self._dnd_prev = result.stdout.strip()
+                subprocess.run(
+                    ["gsettings", "set",
+                     "org.gnome.desktop.notifications", "show-banners", "false"],
+                    capture_output=True, check=False,
+                )
+            else:
+                if self._dnd_prev:
+                    subprocess.run(
+                        ["gsettings", "set",
+                         "org.gnome.desktop.notifications", "show-banners",
+                         self._dnd_prev],
+                        capture_output=True, check=False,
+                    )
+                    self._dnd_prev = ""
+        except Exception:
+            pass
+
     def _on_todo_toggled(self, btn: Gtk.ToggleButton):
         self._todo_revealer.set_reveal_child(btn.get_active())
 
     def _load_settings(self):
         try:
             s = Gio.Settings.new("io.github.EmaLica.Tempus")
+            self._settings = s
             self.timer.durations[SessionType.FOCUS] = s.get_int("focus-duration") * 60
             self.timer.durations[SessionType.SHORT_BREAK] = s.get_int("short-break-duration") * 60
             self.timer.durations[SessionType.LONG_BREAK] = s.get_int("long-break-duration") * 60
@@ -269,3 +352,14 @@ class TempusWindow(Adw.ApplicationWindow):
     def _on_tick(self):
         self._time_label.set_label(self.timer.format_time())
         self._drawing.queue_draw()
+
+        if self.timer.session_type == SessionType.FOCUS:
+            active_id = self._todo_panel.get_active_id()
+            if active_id:
+                for item in self._todo_panel.items:
+                    if item.id == active_id:
+                        text = item.text
+                        truncated = text[:22] + "…" if len(text) > 22 else text
+                        self._session_label.set_label(truncated)
+                        return
+        self._session_label.set_label(SESSION_NAMES[self.timer.session_type])
