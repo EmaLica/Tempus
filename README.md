@@ -55,7 +55,7 @@ chmod +x run.sh && ./run.sh
 
 **Build as Flatpak locally:**
 ```bash
-flatpak install flathub org.gnome.Platform//47 org.gnome.Sdk//47
+flatpak install flathub org.gnome.Platform//50 org.gnome.Sdk//50
 flatpak-builder --user --install --force-clean build-dir flatpak/io.github.EmaLica.Tempus.yml
 flatpak run io.github.EmaLica.Tempus
 ```
