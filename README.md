@@ -1,63 +1,79 @@
+<div align="center">
+
 # Tempus
 
-A focused Pomodoro timer for GNOME, built with GTK4 and libadwaita.
+**A focused Pomodoro timer for GNOME**
+
+Built with GTK4 and libadwaita. Stays out of your way while you work.
+
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![GNOME](https://img.shields.io/badge/GNOME-GTK4%20%2B%20Adwaita-4A86CF)](https://www.gnome.org/)
+
+<!-- screenshot placeholder — add one before submitting to Flathub -->
+<!-- ![Tempus screenshot](docs/screenshot.png) -->
+
+</div>
+
+---
 
 ## Features
 
-- **Four session types** — Focus, Short Break, Long Break, Custom — each with independently configurable durations
-- **Auto-cycle** — Tempus suggests the right break after each focus session and resets automatically after a long break
-- **Session dots** — visual indicator showing progress through the current Pomodoro cycle
-- **Todo list** — add and check off tasks in-app; load from or export to a Markdown file
-- **Desktop notifications** when a session ends
-- **Preferences** — tweak every timer duration and the cycle length without touching a config file
+- **Four session types** — Focus, Short Break, Long Break, and Custom, each with its own configurable duration
+- **Circular progress ring** — colour-coded by session type so you can tell at a glance where you are
+- **Auto-cycle** — after each focus session Tempus suggests the right break and advances automatically
+- **Session dots** — shows how many focus sessions you have completed in the current cycle
+- **Todo list** — add tasks inline or load them from a Markdown file; export back to Markdown when you're done
+- **Desktop notifications** — notified the moment a session ends, even if the window is minimised
+- **Preferences** — change every duration and the cycle length live, no restart needed
 
-## Running locally (development)
+## Installation
 
-### Requirements
+### Flathub *(coming soon)*
 
-- Python ≥ 3.11
-- GTK4
-- libadwaita ≥ 1.4
-- `python3-gobject` / `pygobject`
-- `glib-compile-schemas` (part of `glib2-devel` / `libglib2.0-dev-bin`)
+```bash
+flatpak install flathub io.github.EmaLica.Tempus
+flatpak run io.github.EmaLica.Tempus
+```
 
-On Fedora:
+### Build from source
+
+**Requirements** (Fedora):
 ```bash
 sudo dnf install python3-gobject gtk4 libadwaita glib2-devel
 ```
 
-### Run
-
+**Run without installing:**
 ```bash
-chmod +x run.sh
-./run.sh
+git clone https://github.com/EmaLica/Tempus
+cd Tempus
+chmod +x run.sh && ./run.sh
 ```
 
-`run.sh` compiles the GSettings schema into `data/` and sets `GSETTINGS_SCHEMA_DIR` so the app can find it without a system install.
+`run.sh` compiles the GSettings schema locally and launches the app directly — no system install needed for development.
 
-## Todo Markdown format
+**Build as Flatpak locally:**
+```bash
+flatpak install flathub org.gnome.Platform//47 org.gnome.Sdk//47
+flatpak-builder --user --install --force-clean build-dir flatpak/io.github.EmaLica.Tempus.yml
+flatpak run io.github.EmaLica.Tempus
+```
 
-Tempus reads and writes standard GFM task-list syntax:
+## Todo list — Markdown format
+
+Tempus imports and exports the standard GFM task-list syntax:
 
 ```markdown
-# Todo
-
 - [ ] Write the report
 - [x] Review the PR
 - [ ] Fix bug #42
 ```
 
-Plain `- item` lines (without a checkbox) are also imported as uncompleted tasks.
+Plain `- item` lines without a checkbox are imported as uncompleted tasks.
 
-## Flatpak / Flathub
+## Contributing
 
-See [`flatpak/io.github.EmaLica.Tempus.yml`](flatpak/io.github.EmaLica.Tempus.yml) for the manifest.
-
-```bash
-flatpak-builder --user --install --force-clean build-dir flatpak/io.github.EmaLica.Tempus.yml
-flatpak run io.github.EmaLica.Tempus
-```
+Bug reports and pull requests are welcome on the [issue tracker](https://github.com/EmaLica/Tempus/issues).
 
 ## License
 
-GPL-3.0-or-later
+Tempus is released under the [GNU General Public License v3.0](LICENSE).

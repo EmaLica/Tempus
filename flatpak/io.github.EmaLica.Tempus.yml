@@ -9,7 +9,7 @@ finish-args:
   - --socket=fallback-x11
   - --socket=wayland
   - --talk-name=org.freedesktop.Notifications
-  - --filesystem=home:ro   # read home for loading Markdown todo files
+  - --filesystem=home:ro
   - --filesystem=xdg-documents:rw
 
 modules:
@@ -29,5 +29,7 @@ modules:
       - install -Dm644 data/icons/hicolor/symbolic/apps/io.github.EmaLica.Tempus-symbolic.svg
           /app/share/icons/hicolor/symbolic/apps/io.github.EmaLica.Tempus-symbolic.svg
     sources:
-      - type: dir
-        path: ..
+      - type: git
+        url: https://github.com/EmaLica/Tempus.git
+        tag: v0.1.0
+        commit: FILL_IN_AFTER_TAGGING  # replace with the full commit hash of v0.1.0
