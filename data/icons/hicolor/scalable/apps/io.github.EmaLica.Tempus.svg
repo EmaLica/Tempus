@@ -1,25 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
-  <!-- Outer shadow/background -->
-  <circle cx="64" cy="68" r="52" fill="rgba(0,0,0,0.12)"/>
-  <!-- Main tomato body -->
-  <circle cx="64" cy="64" r="52" fill="#e74c3c"/>
-  <!-- Highlight -->
-  <circle cx="48" cy="44" r="14" fill="rgba(255,255,255,0.18)"/>
-  <!-- Stem -->
-  <rect x="61" y="10" width="6" height="16" rx="3" fill="#27ae60"/>
-  <ellipse cx="64" cy="14" rx="10" ry="5" fill="#2ecc71"/>
-  <!-- Clock ring -->
-  <circle cx="64" cy="68" r="34" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="5"/>
-  <!-- Clock ticks -->
-  <line x1="64" y1="36" x2="64" y2="42" stroke="rgba(255,255,255,0.7)" stroke-width="3" stroke-linecap="round"/>
-  <line x1="64" y1="94" x2="64" y2="100" stroke="rgba(255,255,255,0.7)" stroke-width="3" stroke-linecap="round"/>
-  <line x1="32" y1="68" x2="38" y2="68" stroke="rgba(255,255,255,0.7)" stroke-width="3" stroke-linecap="round"/>
-  <line x1="90" y1="68" x2="96" y2="68" stroke="rgba(255,255,255,0.7)" stroke-width="3" stroke-linecap="round"/>
-  <!-- Minute hand -->
-  <line x1="64" y1="68" x2="64" y2="44" stroke="white" stroke-width="4" stroke-linecap="round"/>
-  <!-- Hour hand -->
-  <line x1="64" y1="68" x2="80" y2="68" stroke="white" stroke-width="4" stroke-linecap="round"/>
-  <!-- Center dot -->
-  <circle cx="64" cy="68" r="4" fill="white"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <clipPath id="clip-top">
+      <rect x="0" y="0" width="512" height="256"/>
+    </clipPath>
+    <clipPath id="clip-bot">
+      <rect x="0" y="256" width="512" height="256"/>
+    </clipPath>
+    <mask id="gear-mask">
+      <path d="M 446.11,212.61 L 483.30,238.11 L 483.30,273.89 L 446.11,299.39 L 446.11,299.39 L 468.55,338.50 L 453.03,370.74 L 408.46,377.58 L 408.46,377.58 L 411.70,422.55 L 383.73,444.86 L 340.61,431.69 L 340.61,431.69 L 324.02,473.62 L 289.14,481.58 L 256.00,451.00 L 256.00,451.00 L 222.86,481.58 L 187.98,473.62 L 171.39,431.69 L 171.39,431.69 L 128.27,444.86 L 100.30,422.55 L 103.54,377.58 L 103.54,377.58 L 58.97,370.74 L 43.45,338.50 L 65.89,299.39 L 65.89,299.39 L 28.70,273.89 L 28.70,238.11 L 65.89,212.61 L 65.89,212.61 L 43.45,173.50 L 58.97,141.26 L 103.54,134.42 L 103.54,134.42 L 100.30,89.45 L 128.27,67.14 L 171.39,80.31 L 171.39,80.31 L 187.98,38.38 L 222.86,30.42 L 256.00,61.00 L 256.00,61.00 L 289.14,30.42 L 324.02,38.38 L 340.61,80.31 L 340.61,80.31 L 383.73,67.14 L 411.70,89.45 L 408.46,134.42 L 408.46,134.42 L 453.03,141.26 L 468.55,173.50 L 446.11,212.61 Z" fill="white"/>
+      <circle cx="256" cy="256" r="150" fill="black"/>
+    </mask>
+  </defs>
+
+  <!-- Gear: green top half -->
+  <rect x="0" y="0" width="512" height="512" fill="#3a7d44" mask="url(#gear-mask)" clip-path="url(#clip-top)"/>
+  <!-- Gear: red bottom half -->
+  <rect x="0" y="0" width="512" height="512" fill="#c0392b" mask="url(#gear-mask)" clip-path="url(#clip-bot)"/>
+  <!-- Gear shadow at split line -->
+  <rect x="0" y="220" width="512" height="36" fill="#2d6235" mask="url(#gear-mask)" clip-path="url(#clip-top)"/>
+  <rect x="0" y="256" width="512" height="36" fill="#96281b" mask="url(#gear-mask)" clip-path="url(#clip-bot)"/>
+
+  <!-- Inner white circle -->
+  <circle cx="256" cy="256" r="150" fill="white"/>
+
+  <!-- Infinity loops: draw left loop first (behind), then right (in front), then re-draw top of left (over right) -->
+
+  <!-- Left loop: white outline -->
+  <path d="M 256,256 C 236,204 120,204 120,256 C 120,308 236,308 256,256 Z" fill="none" stroke="white" stroke-width="32" stroke-linejoin="round"/>
+  <!-- Left loop: green fill of stroke -->
+  <path d="M 256,256 C 236,204 120,204 120,256 C 120,308 236,308 256,256 Z" fill="none" stroke="#3a7d44" stroke-width="22" stroke-linejoin="round"/>
+
+  <!-- Right loop: white outline -->
+  <path d="M 256,256 C 276,204 392,204 392,256 C 392,308 276,308 256,256 Z" fill="none" stroke="white" stroke-width="32" stroke-linejoin="round"/>
+  <!-- Right loop: red fill of stroke -->
+  <path d="M 256,256 C 276,204 392,204 392,256 C 392,308 276,308 256,256 Z" fill="none" stroke="#c0392b" stroke-width="22" stroke-linejoin="round"/>
+
+  <!-- Re-draw top arc of left loop so it goes OVER the right loop -->
+  <path d="M 256,256 C 236,204 120,204 120,256" fill="none" stroke="white" stroke-width="32" stroke-linecap="round"/>
+  <path d="M 256,256 C 236,204 120,204 120,256" fill="none" stroke="#3a7d44" stroke-width="22" stroke-linecap="round"/>
+
+  <!-- Clock hands -->
+  <line x1="256" y1="256" x2="211" y2="191" stroke="white" stroke-width="9" stroke-linecap="round"/>
+  <line x1="256" y1="256" x2="211" y2="191" stroke="#c0392b" stroke-width="7" stroke-linecap="round"/>
+  <line x1="256" y1="256" x2="294" y2="226" stroke="white" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- Center diamond -->
+  <polygon points="256,245 265,256 256,267 247,256" fill="white"/>
+  <polygon points="256,247 263,256 256,265 249,256" fill="#c0392b"/>
 </svg>
