@@ -22,13 +22,13 @@ class TempusWindow(Adw.ApplicationWindow):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.timer = Timer()
-        self.timer.connect_tick(self._on_tick)
         self.timer.connect_finish(self._on_finish)
 
         self.set_title("Tempus")
         self.set_default_size(420, 660)
         self._load_settings()
         self._build_ui()
+        self.timer.connect_tick(self._on_tick)
         self._on_tick()
 
     def _build_ui(self):
@@ -66,7 +66,6 @@ class TempusWindow(Adw.ApplicationWindow):
             btn.connect("toggled", self._on_session_toggled, stype)
             pill.append(btn)
             self._session_btns[stype] = btn
-        self._session_btns[SessionType.FOCUS].set_active(True)
         box.append(pill)
 
         overlay = Gtk.Overlay()
@@ -138,6 +137,7 @@ class TempusWindow(Adw.ApplicationWindow):
 
         toolbar_view.set_content(body)
         self.set_content(toolbar_view)
+        self._session_btns[SessionType.FOCUS].set_active(True)
 
     def _draw_ring(self, _area, cr, width, height):
         cx, cy = width / 2, height / 2
