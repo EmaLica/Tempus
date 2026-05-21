@@ -28,6 +28,8 @@ modules:
           /app/share/icons/hicolor/scalable/apps/io.github.EmaLica.Tempus.svg
       - install -Dm644 data/icons/hicolor/symbolic/apps/io.github.EmaLica.Tempus-symbolic.svg
           /app/share/icons/hicolor/symbolic/apps/io.github.EmaLica.Tempus-symbolic.svg
+      - install -Dm644 data/icons/hicolor/512x512/apps/io.github.EmaLica.Tempus.png
+          /app/share/icons/hicolor/512x512/apps/io.github.EmaLica.Tempus.png
     sources:
       - type: git
         url: https://github.com/EmaLica/Tempus.git

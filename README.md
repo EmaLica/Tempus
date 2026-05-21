@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/logo.png" alt="Tempus logo" width="128"/>
+
 # Tempus
 
 **A focused Pomodoro timer for GNOME**
@@ -9,8 +11,8 @@ Built with GTK4 and libadwaita. Stays out of your way while you work.
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![GNOME](https://img.shields.io/badge/GNOME-GTK4%20%2B%20Adwaita-4A86CF)](https://www.gnome.org/)
 
-<!-- screenshot placeholder — add one before submitting to Flathub -->
-<!-- ![Tempus screenshot](docs/screenshot.png) -->
+<img src="docs/screenshot-tasks.png" alt="Focus session with todo list" width="300"/>
+<img src="docs/screenshot-breaks.png" alt="Short break session" width="300"/>
 
 </div>
 

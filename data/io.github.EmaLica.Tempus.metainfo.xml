@@ -22,6 +22,17 @@
     </ul>
   </description>
 
+  <screenshots>
+    <screenshot type="default">
+      <caption>Focus session running with todo list open</caption>
+      <image>https://raw.githubusercontent.com/EmaLica/Tempus/main/docs/screenshot-tasks.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Short break session in progress</caption>
+      <image>https://raw.githubusercontent.com/EmaLica/Tempus/main/docs/screenshot-breaks.png</image>
+    </screenshot>
+  </screenshots>
+
   <launchable type="desktop-id">io.github.EmaLica.Tempus.desktop</launchable>
 
   <url type="homepage">https://github.com/EmaLica/Tempus</url>
