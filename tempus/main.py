@@ -1,8 +1,9 @@
 import sys
+from pathlib import Path
 import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Gtk, Adw, Gio
+from gi.repository import Gtk, Adw, Gio, Gdk
 
 from .window import TempusWindow
 
@@ -28,6 +29,11 @@ class TempusApplication(Adw.Application):
         self.set_accels_for_action("app.preferences", ["<primary>comma"])
 
     def do_activate(self):
+        icons_dir = Path(__file__).resolve().parent.parent / "data" / "icons"
+        if icons_dir.is_dir():
+            theme = Gtk.IconTheme.get_for_display(Gdk.Display.get_default())
+            theme.add_search_path(str(icons_dir))
+
         win = self.props.active_window
         if not win:
             win = TempusWindow(application=self)
