@@ -34,4 +34,4 @@ modules:
       - type: git
         url: https://github.com/EmaLica/Tempus.git
         tag: v0.1.0
-        commit: FILL_IN_AFTER_TAGGING  # replace with the full commit hash of v0.1.0
+        commit: e88ff90c844985cf7011fb14fc1ab8d5b6797cc1
