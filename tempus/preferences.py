@@ -78,8 +78,6 @@ class TempusPreferences(Adw.PreferencesWindow):
     def _make_spin(self, title: str, key: str, lo: int, hi: int, default: int) -> Adw.SpinRow:
         row = Adw.SpinRow()
         row.set_title(title)
-        row.set_range(lo, hi)
-        row.set_increments(1, 5)
 
         value = default
         if self._settings:
@@ -87,7 +85,8 @@ class TempusPreferences(Adw.PreferencesWindow):
                 value = self._settings.get_int(key)
             except Exception:
                 pass
-        row.set_value(value)
+        adj = Gtk.Adjustment(value=value, lower=lo, upper=hi, step_increment=1, page_increment=5)
+        row.set_adjustment(adj)
         row.connect("notify::value", self._on_value_changed, key)
         return row
 

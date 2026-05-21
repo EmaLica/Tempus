@@ -6,6 +6,7 @@ from gi.repository import Gtk, Adw, Gio
 
 from .timer import Timer, SESSION_NAMES, SessionType, TimerState
 from .todo import TodoPanel
+from .preferences import TempusPreferences
 
 RING_SIZE = 224
 RING_LINE = 10
@@ -39,6 +40,17 @@ class TempusWindow(Adw.ApplicationWindow):
         self._todo_btn.set_tooltip_text("Toggle Todo list")
         self._todo_btn.connect("toggled", self._on_todo_toggled)
         header.pack_end(self._todo_btn)
+
+        menu = Gio.Menu()
+        menu.append("Preferences", "win.preferences")
+        menu_btn = Gtk.MenuButton()
+        menu_btn.set_icon_name("open-menu-symbolic")
+        menu_btn.set_menu_model(menu)
+        header.pack_end(menu_btn)
+
+        pref_action = Gio.SimpleAction.new("preferences", None)
+        pref_action.connect("activate", self._on_preferences)
+        self.add_action(pref_action)
 
         toolbar_view.add_top_bar(header)
 
@@ -234,6 +246,10 @@ class TempusWindow(Adw.ApplicationWindow):
             else:
                 dot.set_markup('<span color="#808080">○</span>')
             self._dots_box.append(dot)
+
+    def _on_preferences(self, *_):
+        prefs = TempusPreferences(timer=self.timer, transient_for=self)
+        prefs.present()
 
     def _on_todo_toggled(self, btn: Gtk.ToggleButton):
         self._todo_revealer.set_reveal_child(btn.get_active())
