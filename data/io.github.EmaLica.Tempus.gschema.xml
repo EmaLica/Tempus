@@ -32,5 +32,10 @@
       <range min="1" max="10"/>
     </key>
 
+    <key name="dnd-during-focus" type="b">
+      <default>true</default>
+      <summary>Disable GNOME notifications during focus sessions</summary>
+    </key>
+
   </schema>
 </schemalist>
