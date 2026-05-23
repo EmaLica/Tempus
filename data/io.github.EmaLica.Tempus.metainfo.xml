@@ -43,6 +43,11 @@
   </developer>
 
   <releases>
+    <release version="0.2.0" date="2026-05-23">
+      <description>
+        <p>Tasks now persist between sessions. Activate a task to track focus sessions per task, with pomodoro badges and a daily stats view. Do Not Disturb syncs automatically with focus sessions.</p>
+      </description>
+    </release>
     <release version="0.1.1" date="2026-05-22">
       <description>
         <p>Add preferences menu button to the header bar.</p>
