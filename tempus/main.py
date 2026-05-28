@@ -45,7 +45,7 @@ class TempusApplication(Adw.Application):
             application_name="Tempus",
             application_icon="io.github.EmaLica.Tempus",
             developer_name="EmaLica",
-            version="0.1.0",
+            version="0.2.2",
             website="https://github.com/EmaLica/Tempus",
             issue_url="https://github.com/EmaLica/Tempus/issues",
             license_type=Gtk.License.GPL_3_0,

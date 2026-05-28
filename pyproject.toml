@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tempus"
-version = "0.2.0"
+version = "0.2.2"
 description = "A focused Pomodoro timer for GNOME"
 readme = "README.md"
 license = { text = "GPL-3.0-or-later" }

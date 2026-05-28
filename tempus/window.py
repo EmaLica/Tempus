@@ -41,7 +41,6 @@ class TempusWindow(Adw.ApplicationWindow):
         self._nav = Adw.NavigationView()
         self.set_content(self._nav)
 
-        # ── Main timer page ──────────────────────────────────────────────────────
         main_toolbar = Adw.ToolbarView()
         header = Adw.HeaderBar()
 
@@ -167,7 +166,6 @@ class TempusWindow(Adw.ApplicationWindow):
         main_page = Adw.NavigationPage.new(main_toolbar, "Tempus")
         self._nav.add(main_page)
 
-        # ── Stats page ───────────────────────────────────────────────────────────
         stats_toolbar = Adw.ToolbarView()
         stats_header = Adw.HeaderBar()
         stats_toolbar.add_top_bar(stats_header)

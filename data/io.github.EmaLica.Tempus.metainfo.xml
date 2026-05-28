@@ -43,6 +43,11 @@
   </developer>
 
   <releases>
+    <release version="0.2.2" date="2026-05-28">
+      <description>
+        <p>Code cleanup: removed leftover section-divider comments from preferences and window modules.</p>
+      </description>
+    </release>
     <release version="0.2.0" date="2026-05-23">
       <description>
         <p>Tasks now persist between sessions. Activate a task to track focus sessions per task, with pomodoro badges and a daily stats view. Do Not Disturb syncs automatically with focus sessions.</p>

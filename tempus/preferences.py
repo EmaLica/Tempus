@@ -34,7 +34,6 @@ class TempusPreferences(Adw.PreferencesWindow):
         page.set_title("General")
         page.set_icon_name("preferences-system-symbolic")
 
-        # ── Duration group ──────────────────────────────────────────────────
         dur_group = Adw.PreferencesGroup()
         dur_group.set_title("Session Durations")
         dur_group.set_description("Duration in minutes for each session type")
@@ -61,7 +60,6 @@ class TempusPreferences(Adw.PreferencesWindow):
 
         page.add(dur_group)
 
-        # ── Cycle group ─────────────────────────────────────────────────────
         cycle_group = Adw.PreferencesGroup()
         cycle_group.set_title("Pomodoro Cycle")
 
@@ -73,7 +71,6 @@ class TempusPreferences(Adw.PreferencesWindow):
         cycle_group.add(self._cycle_row)
         page.add(cycle_group)
 
-        # ── GNOME integration group ─────────────────────────────────────────
         gnome_group = Adw.PreferencesGroup()
         gnome_group.set_title("GNOME Integration")
 
