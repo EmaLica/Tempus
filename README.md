@@ -200,4 +200,3 @@ Bug reports and pull requests are welcome on the [issue tracker](https://github.
 ## License
 
 Tempus is released under the [GNU General Public License v3.0](LICENSE).
-
