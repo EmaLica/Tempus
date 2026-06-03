@@ -43,6 +43,11 @@
   </developer>
 
   <releases>
+    <release version="0.2.3" date="2026-06-03">
+      <description>
+        <p>Window title now shows the live countdown and session name while the timer is running or paused.</p>
+      </description>
+    </release>
     <release version="0.2.2" date="2026-05-28">
       <description>
         <p>Code cleanup: removed leftover section-divider comments from preferences and window modules.</p>

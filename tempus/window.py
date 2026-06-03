@@ -356,6 +356,11 @@ class TempusWindow(Adw.ApplicationWindow):
         self._time_label.set_label(self.timer.format_time())
         self._drawing.queue_draw()
 
+        if self.timer.state == TimerState.RUNNING or self.timer.state == TimerState.PAUSED:
+            self.set_title(f"{self.timer.format_time()} · {SESSION_NAMES[self.timer.session_type]}")
+        else:
+            self.set_title("Tempus")
+
         if self.timer.session_type == SessionType.FOCUS:
             active = self._todo_panel.get_active_item()
             if active:
