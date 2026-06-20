@@ -43,6 +43,11 @@
   </developer>
 
   <releases>
+    <release version="0.3.0" date="2026-06-20">
+      <description>
+        <p>Subjects and long-term history. Assign a subject (Math, Physics, Literature…) to any task — custom subjects supported. The stats page now covers Today, Week, Month and Semester ranges. Today still breaks down by task; longer ranges show time per subject. Semester view defaults to the last six months, with an option to set a custom date range in Preferences. Also fixes sound alerts on session end and data not persisting under Flatpak.</p>
+      </description>
+    </release>
     <release version="0.2.3" date="2026-06-03">
       <description>
         <p>Window title now shows the live countdown and session name while the timer is running or paused.</p>

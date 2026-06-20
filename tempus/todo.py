@@ -13,13 +13,14 @@ class TodoItem(GObject.Object):
 
     def __init__(self, text: str, done: bool = False,
                  item_id: str | None = None, pomodoros: int = 0,
-                 estimate: int = 0):
+                 estimate: int = 0, subject: str | None = None):
         super().__init__()
         self.id = item_id or str(uuid.uuid4())
         self.text = text
         self.done = done
         self.pomodoros = pomodoros
         self.estimate = estimate
+        self.subject = subject
 
 
 class TodoPanel(Gtk.Box):
@@ -31,6 +32,7 @@ class TodoPanel(Gtk.Box):
         self._active_id: str | None = None
         self._active_row: Adw.ActionRow | None = None
         self._badge_labels: dict[str, Gtk.Label] = {}
+        self._subject_btns: dict[str, Gtk.Button] = {}
         self._build_ui()
         self._load_saved()
 
@@ -43,6 +45,7 @@ class TodoPanel(Gtk.Box):
                 item_id=r.get("id"),
                 pomodoros=r.get("pomodoros", 0),
                 estimate=r.get("estimate", 0),
+                subject=r.get("subject"),
             )
             self.add_item(item)
 
@@ -54,6 +57,7 @@ class TodoPanel(Gtk.Box):
                 "done": it.done,
                 "pomodoros": it.pomodoros,
                 "estimate": it.estimate,
+                "subject": it.subject,
             }
             for it in self.items
         ])
@@ -85,7 +89,7 @@ class TodoPanel(Gtk.Box):
                     label.set_visible(True)
                 self._save()
                 return
-        print(f"[tempus] add_pomodoro: task {task_id!r} not found, session not attributed")
+        print(f"[tempus] add_pomodoro: task {task_id!r} not found")
 
     def _build_ui(self):
         header = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
@@ -162,6 +166,11 @@ class TodoPanel(Gtk.Box):
         self.items.append(item)
         self.list_box.append(self._build_row(item))
 
+    def _subject_label(self, subject: str | None) -> str:
+        if not subject:
+            return "—"
+        return subject[:10] + "…" if len(subject) > 10 else subject
+
     def _build_row(self, item: TodoItem) -> Adw.ActionRow:
         row = Adw.ActionRow()
         row.set_title(GLib.markup_escape_text(item.text))
@@ -173,6 +182,15 @@ class TodoPanel(Gtk.Box):
         check.set_valign(Gtk.Align.CENTER)
         check.connect("toggled", self._on_toggle, item, row)
         row.add_prefix(check)
+
+        subj_btn = Gtk.Button(label=self._subject_label(item.subject))
+        subj_btn.add_css_class("flat")
+        subj_btn.add_css_class("caption")
+        subj_btn.set_valign(Gtk.Align.CENTER)
+        subj_btn.set_tooltip_text("Assign subject")
+        subj_btn.connect("clicked", self._on_subject_clicked, item, subj_btn)
+        self._subject_btns[item.id] = subj_btn
+        row.add_suffix(subj_btn)
 
         badge = Gtk.Label()
         badge.add_css_class("caption")
@@ -199,6 +217,89 @@ class TodoPanel(Gtk.Box):
 
         return row
 
+    def _on_subject_clicked(self, btn: Gtk.Button, item: TodoItem, subj_btn: Gtk.Button):
+        subjects = storage.load_subjects()
+
+        popover = Gtk.Popover()
+        popover.set_parent(btn)
+        popover.set_has_arrow(True)
+
+        outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        outer.set_margin_top(8)
+        outer.set_margin_bottom(8)
+        outer.set_margin_start(4)
+        outer.set_margin_end(4)
+
+        lb = Gtk.ListBox()
+        lb.add_css_class("boxed-list")
+        lb.set_selection_mode(Gtk.SelectionMode.NONE)
+
+        none_row = Gtk.ListBoxRow()
+        none_lbl = Gtk.Label(label="No subject")
+        none_lbl.set_halign(Gtk.Align.START)
+        none_lbl.set_margin_top(6)
+        none_lbl.set_margin_bottom(6)
+        none_lbl.set_margin_start(8)
+        none_lbl.set_margin_end(8)
+        none_row.set_child(none_lbl)
+        lb.append(none_row)
+
+        for s in subjects:
+            s_row = Gtk.ListBoxRow()
+            s_lbl = Gtk.Label(label=s)
+            s_lbl.set_halign(Gtk.Align.START)
+            s_lbl.set_margin_top(6)
+            s_lbl.set_margin_bottom(6)
+            s_lbl.set_margin_start(8)
+            s_lbl.set_margin_end(8)
+            s_row.set_child(s_lbl)
+            lb.append(s_row)
+
+        def on_row_activated(_, row):
+            idx = row.get_index()
+            if idx == 0:
+                item.subject = None
+            else:
+                item.subject = subjects[idx - 1]
+            subj_btn.set_label(self._subject_label(item.subject))
+            self._save()
+            popover.popdown()
+
+        lb.connect("row-activated", on_row_activated)
+        outer.append(lb)
+
+        outer.append(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL))
+
+        new_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
+        new_box.set_margin_top(4)
+        new_entry = Gtk.Entry()
+        new_entry.set_placeholder_text("New subject…")
+        new_entry.set_hexpand(True)
+
+        confirm_btn = Gtk.Button(label="Add")
+        confirm_btn.add_css_class("suggested-action")
+
+        def on_add(*_):
+            text = new_entry.get_text().strip()
+            if text and text not in subjects:
+                subjects.append(text)
+                storage.save_subjects(subjects)
+            if text:
+                item.subject = text
+                subj_btn.set_label(self._subject_label(text))
+                self._save()
+            popover.popdown()
+
+        confirm_btn.connect("clicked", on_add)
+        new_entry.connect("activate", on_add)
+
+        new_box.append(new_entry)
+        new_box.append(confirm_btn)
+        outer.append(new_box)
+
+        popover.set_child(outer)
+        popover.popup()
+
     def _on_row_activated(self, row: Adw.ActionRow, item: TodoItem) -> None:
         if self._active_row is not None:
             self._active_row.remove_css_class("accent")
@@ -215,6 +316,7 @@ class TodoPanel(Gtk.Box):
         self.items.clear()
         self._active_id = None
         self._badge_labels.clear()
+        self._subject_btns.clear()
         child = self.list_box.get_first_child()
         while child:
             nxt = child.get_next_sibling()
@@ -240,6 +342,7 @@ class TodoPanel(Gtk.Box):
         if self._active_id == item.id:
             self._active_id = None
         self._badge_labels.pop(item.id, None)
+        self._subject_btns.pop(item.id, None)
         self.items.remove(item)
         self.list_box.remove(row)
         self._save()

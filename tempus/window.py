@@ -3,7 +3,10 @@ import time
 import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Gtk, Adw, Gio
+gi.require_version("Gst", "1.0")
+from gi.repository import Gtk, Adw, Gio, Gst
+
+Gst.init(None)
 
 from .timer import Timer, SESSION_NAMES, SessionType, TimerState
 from .todo import TodoPanel
@@ -206,20 +209,23 @@ class TempusWindow(Adw.ApplicationWindow):
     def _on_finish(self):
         self._update_start_icon()
         self._refresh_dots()
+        self._dnd_set_focus_mode(False)
+        self._play_alert()
         self._send_notification()
         if self.timer.session_type == SessionType.FOCUS:
-            active_id = self._todo_panel.get_active_id()
+            active_item = self._todo_panel.get_active_item()
             entry: dict = {
                 "ts": int(time.time()),
                 "session_type": "focus",
                 "duration": self.timer.duration,
             }
-            if active_id:
-                entry["task_id"] = active_id
+            if active_item:
+                entry["task_id"] = active_item.id
+            if active_item and active_item.subject:
+                entry["subject"] = active_item.subject
             storage.append_history(entry)
-            if active_id:
-                self._todo_panel.add_pomodoro(active_id)
-        self._dnd_set_focus_mode(False)
+            if active_item:
+                self._todo_panel.add_pomodoro(active_item.id)
         self._auto_advance()
         self._drawing.queue_draw()
 
@@ -232,6 +238,24 @@ class TempusWindow(Adw.ApplicationWindow):
                 self._session_btns[SessionType.SHORT_BREAK].set_active(True)
         else:
             self._session_btns[SessionType.FOCUS].set_active(True)
+
+    def _play_alert(self):
+        try:
+            pipeline = Gst.parse_launch(
+                "audiotestsrc wave=0 freq=880 num-buffers=10 ! "
+                "audioconvert ! autoaudiosink"
+            )
+            pipeline.set_state(Gst.State.PLAYING)
+            bus = pipeline.get_bus()
+            bus.add_signal_watch()
+
+            def _on_bus_msg(_, msg, pl):
+                if msg.type in (Gst.MessageType.EOS, Gst.MessageType.ERROR):
+                    pl.set_state(Gst.State.NULL)
+
+            bus.connect("message", _on_bus_msg, pipeline)
+        except Exception:
+            pass
 
     def _send_notification(self):
         app = self.get_application()

@@ -4,6 +4,7 @@ gi.require_version("Adw", "1")
 from gi.repository import Adw, Gtk, Gio
 
 from .timer import SessionType
+from . import storage
 
 
 SETTINGS_KEYS = {
@@ -19,7 +20,7 @@ class TempusPreferences(Adw.PreferencesWindow):
         super().__init__(**kwargs)
         self.timer = timer
         self.set_title("Preferences")
-        self.set_default_size(480, 420)
+        self.set_default_size(480, 560)
         self.set_search_enabled(False)
 
         try:
@@ -62,7 +63,6 @@ class TempusPreferences(Adw.PreferencesWindow):
 
         cycle_group = Adw.PreferencesGroup()
         cycle_group.set_title("Pomodoro Cycle")
-
         self._cycle_row = self._make_spin(
             "Focus sessions before long break",
             "sessions-before-long-break",
@@ -88,12 +88,112 @@ class TempusPreferences(Adw.PreferencesWindow):
         gnome_group.add(dnd_row)
         page.add(gnome_group)
 
+        self._subjects_group = Adw.PreferencesGroup()
+        self._subjects_group.set_title("Subjects")
+        self._subjects_group.set_description("Subjects you can assign to tasks")
+        self._subject_rows: list[tuple[str, Adw.ActionRow]] = []
+
+        self._new_subject_row = Adw.EntryRow()
+        self._new_subject_row.set_title("Add subject…")
+        self._new_subject_row.set_show_apply_button(True)
+        self._new_subject_row.connect("apply", self._on_add_subject)
+        self._subjects_group.add(self._new_subject_row)
+
+        self._rebuild_subject_rows()
+        page.add(self._subjects_group)
+
+        semester_group = Adw.PreferencesGroup()
+        semester_group.set_title("Semester")
+
+        self._semester_switch = Adw.SwitchRow()
+        self._semester_switch.set_title("Custom date range")
+        self._semester_switch.set_subtitle("Off uses the last 6 months")
+
+        self._semester_start = Adw.EntryRow()
+        self._semester_start.set_title("Start date")
+
+        self._semester_end = Adw.EntryRow()
+        self._semester_end.set_title("End date")
+
+        if self._settings:
+            try:
+                custom = self._settings.get_boolean("semester-custom")
+                self._semester_switch.set_active(custom)
+                self._semester_start.set_text(self._settings.get_string("semester-start"))
+                self._semester_end.set_text(self._settings.get_string("semester-end"))
+            except Exception:
+                pass
+
+        self._semester_start.set_visible(self._semester_switch.get_active())
+        self._semester_end.set_visible(self._semester_switch.get_active())
+
+        self._semester_switch.connect("notify::active", self._on_semester_switch_changed)
+        self._semester_start.connect("changed", self._on_semester_date_changed, "semester-start")
+        self._semester_end.connect("changed", self._on_semester_date_changed, "semester-end")
+
+        semester_group.add(self._semester_switch)
+        semester_group.add(self._semester_start)
+        semester_group.add(self._semester_end)
+        page.add(semester_group)
+
         self.add(page)
+
+    def _rebuild_subject_rows(self):
+        for _, row in self._subject_rows:
+            self._subjects_group.remove(row)
+        self._subject_rows.clear()
+
+        for subject in storage.load_subjects():
+            row = Adw.ActionRow()
+            row.set_title(subject)
+
+            del_btn = Gtk.Button(icon_name="user-trash-symbolic")
+            del_btn.add_css_class("flat")
+            del_btn.set_valign(Gtk.Align.CENTER)
+            del_btn.connect("clicked", self._on_delete_subject, subject)
+            row.add_suffix(del_btn)
+
+            self._subjects_group.add(row)
+            self._subject_rows.append((subject, row))
+
+    def _on_add_subject(self, row: Adw.EntryRow):
+        text = row.get_text().strip()
+        if not text:
+            return
+        subjects = storage.load_subjects()
+        if text not in subjects:
+            subjects.append(text)
+            storage.save_subjects(subjects)
+            self._rebuild_subject_rows()
+        row.set_text("")
+
+    def _on_delete_subject(self, _btn, subject: str):
+        subjects = storage.load_subjects()
+        if subject in subjects:
+            subjects.remove(subject)
+            storage.save_subjects(subjects)
+            self._rebuild_subject_rows()
+
+    def _on_semester_switch_changed(self, row: Adw.SwitchRow, _param):
+        active = row.get_active()
+        self._semester_start.set_visible(active)
+        self._semester_end.set_visible(active)
+        if self._settings:
+            try:
+                self._settings.set_boolean("semester-custom", active)
+            except Exception:
+                pass
+
+    def _on_semester_date_changed(self, row: Adw.EntryRow, key: str):
+        if self._settings:
+            try:
+                self._settings.set_string(key, row.get_text().strip())
+            except Exception:
+                pass
 
     def _make_spin(self, title: str, key: str, lo: int, hi: int, default: int) -> Adw.SpinRow:
         row = Adw.SpinRow()
         row.set_title(title)
-
         value = default
         if self._settings:
             try:

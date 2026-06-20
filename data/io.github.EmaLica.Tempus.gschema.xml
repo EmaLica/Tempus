@@ -37,5 +37,20 @@
       <summary>Disable GNOME notifications during focus sessions</summary>
     </key>
 
+    <key name="semester-custom" type="b">
+      <default>false</default>
+      <summary>Use a custom date range for the semester view</summary>
+    </key>
+
+    <key name="semester-start" type="s">
+      <default>''</default>
+      <summary>Semester start date (YYYY-MM-DD)</summary>
+    </key>
+
+    <key name="semester-end" type="s">
+      <default>''</default>
+      <summary>Semester end date (YYYY-MM-DD)</summary>
+    </key>
+
   </schema>
 </schemalist>
