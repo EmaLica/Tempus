@@ -52,5 +52,11 @@
       <summary>Semester end date (YYYY-MM-DD)</summary>
     </key>
 
+    <key name="alert-volume" type="i">
+      <default>70</default>
+      <summary>Alert sound volume (0–100)</summary>
+      <range min="0" max="100"/>
+    </key>
+
   </schema>
 </schemalist>

@@ -88,6 +88,31 @@ class TempusPreferences(Adw.PreferencesWindow):
         gnome_group.add(dnd_row)
         page.add(gnome_group)
 
+        notif_group = Adw.PreferencesGroup()
+        notif_group.set_title("Notifications")
+
+        vol_row = Adw.ActionRow()
+        vol_row.set_title("Alert volume")
+
+        vol_scale = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, 0, 100, 5)
+        vol_scale.set_hexpand(True)
+        vol_scale.set_draw_value(True)
+        vol_scale.set_value_pos(Gtk.PositionType.RIGHT)
+        vol_scale.set_size_request(180, -1)
+
+        vol_default = 70
+        if self._settings:
+            try:
+                vol_default = self._settings.get_int("alert-volume")
+            except Exception:
+                pass
+        vol_scale.set_value(vol_default)
+        vol_scale.connect("value-changed", self._on_volume_changed)
+        vol_row.add_suffix(vol_scale)
+        vol_row.set_activatable_widget(vol_scale)
+        notif_group.add(vol_row)
+        page.add(notif_group)
+
         self._subjects_group = Adw.PreferencesGroup()
         self._subjects_group.set_title("Subjects")
         self._subjects_group.set_description("Subjects you can assign to tasks")
@@ -211,6 +236,13 @@ class TempusPreferences(Adw.PreferencesWindow):
             self._settings.set_int(key, value)
         if self.timer:
             self._apply_to_timer(key, value)
+
+    def _on_volume_changed(self, scale: Gtk.Scale) -> None:
+        if self._settings:
+            try:
+                self._settings.set_int("alert-volume", int(scale.get_value()))
+            except Exception:
+                pass
 
     def _on_dnd_changed(self, row: Adw.SwitchRow, _param) -> None:
         if self._settings:

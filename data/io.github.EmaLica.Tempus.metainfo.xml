@@ -43,6 +43,11 @@
   </developer>
 
   <releases>
+    <release version="0.4.0" date="2026-06-23">
+      <description>
+        <p>Alert sound replaced with a short ascending chime (do-mi-sol-do). Volume control added in Preferences under Notifications.</p>
+      </description>
+    </release>
     <release version="0.3.0" date="2026-06-20">
       <description>
         <p>Subjects and long-term history. Assign a subject (Math, Physics, Literature…) to any task — custom subjects supported. The stats page now covers Today, Week, Month and Semester ranges. Today still breaks down by task; longer ranges show time per subject. Semester view defaults to the last six months, with an option to set a custom date range in Preferences. Also fixes sound alerts on session end and data not persisting under Flatpak.</p>

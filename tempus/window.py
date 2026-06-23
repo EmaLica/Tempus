@@ -4,7 +4,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 gi.require_version("Gst", "1.0")
-from gi.repository import Gtk, Adw, Gio, Gst
+from gi.repository import Gtk, Adw, Gio, Gst, GLib
 
 Gst.init(None)
 
@@ -239,23 +239,39 @@ class TempusWindow(Adw.ApplicationWindow):
         else:
             self._session_btns[SessionType.FOCUS].set_active(True)
 
+    _MELODY = [(523, 160), (659, 160), (784, 160), (1047, 320)]
+
     def _play_alert(self):
+        vol = 0.7
         try:
-            pipeline = Gst.parse_launch(
-                "audiotestsrc wave=0 freq=880 num-buffers=10 ! "
-                "audioconvert ! autoaudiosink"
-            )
-            pipeline.set_state(Gst.State.PLAYING)
-            bus = pipeline.get_bus()
-            bus.add_signal_watch()
-
-            def _on_bus_msg(_, msg, pl):
-                if msg.type in (Gst.MessageType.EOS, Gst.MessageType.ERROR):
-                    pl.set_state(Gst.State.NULL)
-
-            bus.connect("message", _on_bus_msg, pipeline)
+            if self._settings:
+                vol = self._settings.get_int("alert-volume") / 100.0
         except Exception:
             pass
+        delay = 0
+        for freq, ms in self._MELODY:
+            GLib.timeout_add(delay, self._play_note, freq, ms, vol)
+            delay += ms
+
+    def _play_note(self, freq, ms, vol):
+        try:
+            samples = int(44100 * ms / 1000)
+            pl = Gst.parse_launch(
+                f"audiotestsrc wave=sine freq={freq} samplesperbuffer={samples} num-buffers=1 ! "
+                f"volume volume={vol:.2f} ! audioconvert ! autoaudiosink"
+            )
+            pl.set_state(Gst.State.PLAYING)
+            bus = pl.get_bus()
+            bus.add_signal_watch()
+            bus.connect(
+                "message",
+                lambda _, m, p: p.set_state(Gst.State.NULL)
+                if m.type in (Gst.MessageType.EOS, Gst.MessageType.ERROR) else None,
+                pl,
+            )
+        except Exception:
+            pass
+        return False
 
     def _send_notification(self):
         app = self.get_application()
