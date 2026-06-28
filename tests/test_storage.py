@@ -55,3 +55,29 @@ def test_append_history_handles_corrupt_existing_file(tmp_path, monkeypatch):
     storage.append_history(entry)
     result = storage.load_history()
     assert result == [entry]
+
+
+def test_load_subjects_migrates_plain_strings(tmp_path, monkeypatch):
+    from tempus import storage
+    monkeypatch.setattr("tempus.storage.DATA_DIR", tmp_path)
+    (tmp_path / "subjects.json").write_text(json.dumps(["Math", "Physics"]))
+    result = storage.load_subjects()
+    assert [s["name"] for s in result] == ["Math", "Physics"]
+    assert all(s["color"].startswith("#") for s in result)
+    assert result[0]["color"] != result[1]["color"]
+
+
+def test_save_and_load_subjects_roundtrip(tmp_path, monkeypatch):
+    from tempus import storage
+    monkeypatch.setattr("tempus.storage.DATA_DIR", tmp_path)
+    subjects = [{"name": "Logic", "color": "#3584e4"}]
+    storage.save_subjects(subjects)
+    assert storage.load_subjects() == subjects
+
+
+def test_subject_color_lookup(tmp_path, monkeypatch):
+    from tempus import storage
+    monkeypatch.setattr("tempus.storage.DATA_DIR", tmp_path)
+    storage.save_subjects([{"name": "Logic", "color": "#9141ac"}])
+    assert storage.subject_color("Logic") == "#9141ac"
+    assert storage.subject_color("Unknown") is None

@@ -5,6 +5,17 @@ from gi.repository import Adw, Gtk, Gio
 
 from .timer import SessionType
 from . import storage
+from . import palette
+
+
+def _swatch_css(widget: Gtk.Widget, color: str) -> None:
+    prov = Gtk.CssProvider()
+    css = f"* {{ background:{color}; border-radius:5px; min-width:18px; min-height:18px; }}"
+    try:
+        prov.load_from_string(css)
+    except AttributeError:
+        prov.load_from_data(css.encode())
+    widget.get_style_context().add_provider(prov, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
 
 SETTINGS_KEYS = {
@@ -168,36 +179,73 @@ class TempusPreferences(Adw.PreferencesWindow):
             self._subjects_group.remove(row)
         self._subject_rows.clear()
 
-        for subject in storage.load_subjects():
+        for entry in storage.load_subjects():
+            name = entry["name"]
             row = Adw.ActionRow()
-            row.set_title(subject)
+            row.set_title(name)
+
+            swatch = self._make_swatch(entry["color"])
+            swatch.connect("clicked", self._on_edit_color, name)
+            row.add_prefix(swatch)
 
             del_btn = Gtk.Button(icon_name="user-trash-symbolic")
             del_btn.add_css_class("flat")
             del_btn.set_valign(Gtk.Align.CENTER)
-            del_btn.connect("clicked", self._on_delete_subject, subject)
+            del_btn.connect("clicked", self._on_delete_subject, name)
             row.add_suffix(del_btn)
 
             self._subjects_group.add(row)
-            self._subject_rows.append((subject, row))
+            self._subject_rows.append((name, row))
+
+    def _make_swatch(self, color: str) -> Gtk.Button:
+        btn = Gtk.Button()
+        btn.add_css_class("flat")
+        btn.set_valign(Gtk.Align.CENTER)
+        sq = Gtk.Box()
+        sq.set_size_request(18, 18)
+        _swatch_css(sq, color)
+        btn.set_child(sq)
+        return btn
+
+    def _on_edit_color(self, btn: Gtk.Button, name: str):
+        pop = Gtk.Popover()
+        pop.set_parent(btn)
+        grid = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        grid.set_margin_top(8)
+        grid.set_margin_bottom(8)
+        grid.set_margin_start(8)
+        grid.set_margin_end(8)
+        for color in palette.SUBJECT_COLORS:
+            sw = self._make_swatch(color)
+            sw.connect("clicked", self._on_pick_color, name, color, pop)
+            grid.append(sw)
+        pop.set_child(grid)
+        pop.popup()
+
+    def _on_pick_color(self, _btn, name: str, color: str, pop: Gtk.Popover):
+        subjects = storage.load_subjects()
+        for s in subjects:
+            if s["name"] == name:
+                s["color"] = color
+        storage.save_subjects(subjects)
+        self._rebuild_subject_rows()
+        pop.popdown()
 
     def _on_add_subject(self, row: Adw.EntryRow):
         text = row.get_text().strip()
         if not text:
             return
         subjects = storage.load_subjects()
-        if text not in subjects:
-            subjects.append(text)
+        if not any(s["name"] == text for s in subjects):
+            subjects.append({"name": text, "color": palette.default_color(len(subjects))})
             storage.save_subjects(subjects)
             self._rebuild_subject_rows()
         row.set_text("")
 
-    def _on_delete_subject(self, _btn, subject: str):
-        subjects = storage.load_subjects()
-        if subject in subjects:
-            subjects.remove(subject)
-            storage.save_subjects(subjects)
-            self._rebuild_subject_rows()
+    def _on_delete_subject(self, _btn, name: str):
+        subjects = [s for s in storage.load_subjects() if s["name"] != name]
+        storage.save_subjects(subjects)
+        self._rebuild_subject_rows()
 
     def _on_semester_switch_changed(self, row: Adw.SwitchRow, _param):
         active = row.get_active()

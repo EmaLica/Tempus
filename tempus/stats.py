@@ -7,6 +7,15 @@ from gi.repository import Gtk, Adw, Gio, GLib
 from . import history as hist
 from . import storage
 
+
+def _bar_css(widget: Gtk.Widget, css: str) -> None:
+    prov = Gtk.CssProvider()
+    try:
+        prov.load_from_string(css)
+    except AttributeError:
+        prov.load_from_data(css.encode())
+    widget.get_style_context().add_provider(prov, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
 _RANGES = [
     ("today", "Today"),
     ("week", "Week"),
@@ -210,13 +219,27 @@ class StatsPanel(Gtk.Box):
 
         for subject, secs in sorted(by_subject.items(), key=lambda x: -x[1]):
             n = sum(1 for e in focus if e.subject == subject)
+            color = storage.subject_color(subject) or "#9a9a9a"
             row = Adw.ActionRow()
-            row.set_title(GLib.markup_escape_text(subject))
+            row.set_title(f'<span color="{color}">●</span>  {GLib.markup_escape_text(subject)}')
             row.set_subtitle(f"{n} session{'s' if n != 1 else ''} · {hist.format_duration(secs)}")
-            row.add_suffix(self._level_bar(secs, max_secs))
+            row.add_suffix(self._subject_bar(secs, max_secs, color))
             group.add(row)
 
         self._inner.append(group)
+
+    def _subject_bar(self, value: int, maximum: int, color: str) -> Gtk.Box:
+        ratio = value / maximum if maximum else 0
+        track = Gtk.Box()
+        track.set_size_request(120, 8)
+        track.set_valign(Gtk.Align.CENTER)
+        _bar_css(track, "* { background: rgba(128,128,128,0.15); border-radius:4px; }")
+        fill = Gtk.Box()
+        fill.set_halign(Gtk.Align.START)
+        fill.set_size_request(max(4, int(120 * ratio)), 8)
+        _bar_css(fill, f"* {{ background:{color}; border-radius:4px; }}")
+        track.append(fill)
+        return track
 
     def _level_bar(self, value: int, maximum: int) -> Gtk.LevelBar:
         bar = Gtk.LevelBar()

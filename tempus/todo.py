@@ -3,9 +3,29 @@ import uuid
 import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Gtk, Adw, Gio, GObject, GLib
+from gi.repository import Gtk, Adw, Gio, GObject, GLib, Pango
 
 from . import storage
+from . import palette
+
+
+def _subject_box(name: str | None, color: str | None) -> Gtk.Box:
+    box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+    dot = Gtk.Label()
+    lbl = Gtk.Label()
+    lbl.add_css_class("caption")
+    lbl.set_ellipsize(Pango.EllipsizeMode.END)
+    lbl.set_max_width_chars(12)
+    if name:
+        dot.set_markup(f'<span color="{color or "#9a9a9a"}">●</span>')
+        lbl.set_label(name)
+    else:
+        dot.set_markup('<span color="#9a9a9a">○</span>')
+        lbl.set_label("Subject")
+        lbl.add_css_class("dim-label")
+    box.append(dot)
+    box.append(lbl)
+    return box
 
 
 class TodoItem(GObject.Object):
@@ -166,11 +186,6 @@ class TodoPanel(Gtk.Box):
         self.items.append(item)
         self.list_box.append(self._build_row(item))
 
-    def _subject_label(self, subject: str | None) -> str:
-        if not subject:
-            return "—"
-        return subject[:10] + "…" if len(subject) > 10 else subject
-
     def _build_row(self, item: TodoItem) -> Adw.ActionRow:
         row = Adw.ActionRow()
         row.set_title(GLib.markup_escape_text(item.text))
@@ -183,11 +198,11 @@ class TodoPanel(Gtk.Box):
         check.connect("toggled", self._on_toggle, item, row)
         row.add_prefix(check)
 
-        subj_btn = Gtk.Button(label=self._subject_label(item.subject))
+        subj_btn = Gtk.Button()
         subj_btn.add_css_class("flat")
-        subj_btn.add_css_class("caption")
         subj_btn.set_valign(Gtk.Align.CENTER)
         subj_btn.set_tooltip_text("Assign subject")
+        subj_btn.set_child(_subject_box(item.subject, storage.subject_color(item.subject)))
         subj_btn.connect("clicked", self._on_subject_clicked, item, subj_btn)
         self._subject_btns[item.id] = subj_btn
         row.add_suffix(subj_btn)
@@ -246,13 +261,18 @@ class TodoPanel(Gtk.Box):
 
         for s in subjects:
             s_row = Gtk.ListBoxRow()
-            s_lbl = Gtk.Label(label=s)
-            s_lbl.set_halign(Gtk.Align.START)
-            s_lbl.set_margin_top(6)
-            s_lbl.set_margin_bottom(6)
-            s_lbl.set_margin_start(8)
-            s_lbl.set_margin_end(8)
-            s_row.set_child(s_lbl)
+            s_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+            s_box.set_margin_top(6)
+            s_box.set_margin_bottom(6)
+            s_box.set_margin_start(8)
+            s_box.set_margin_end(8)
+            dot = Gtk.Label()
+            dot.set_markup(f'<span color="{s["color"]}">●</span>')
+            name_lbl = Gtk.Label(label=s["name"])
+            name_lbl.set_halign(Gtk.Align.START)
+            s_box.append(dot)
+            s_box.append(name_lbl)
+            s_row.set_child(s_box)
             lb.append(s_row)
 
         def on_row_activated(_, row):
@@ -260,8 +280,8 @@ class TodoPanel(Gtk.Box):
             if idx == 0:
                 item.subject = None
             else:
-                item.subject = subjects[idx - 1]
-            subj_btn.set_label(self._subject_label(item.subject))
+                item.subject = subjects[idx - 1]["name"]
+            subj_btn.set_child(_subject_box(item.subject, storage.subject_color(item.subject)))
             self._save()
             popover.popdown()
 
@@ -281,12 +301,12 @@ class TodoPanel(Gtk.Box):
 
         def on_add(*_):
             text = new_entry.get_text().strip()
-            if text and text not in subjects:
-                subjects.append(text)
+            if text and not any(s["name"] == text for s in subjects):
+                subjects.append({"name": text, "color": palette.default_color(len(subjects))})
                 storage.save_subjects(subjects)
             if text:
                 item.subject = text
-                subj_btn.set_label(self._subject_label(text))
+                subj_btn.set_child(_subject_box(text, storage.subject_color(text)))
                 self._save()
             popover.popdown()
 

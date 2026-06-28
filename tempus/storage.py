@@ -4,6 +4,8 @@ import gi
 gi.require_version("GLib", "2.0")
 from gi.repository import GLib
 
+from . import palette
+
 DATA_DIR = Path(GLib.get_user_data_dir()) / "tempus"
 
 
@@ -22,18 +24,32 @@ def save_tasks(tasks: list[dict]) -> None:
     tmp.replace(DATA_DIR / "tasks.json")
 
 
-def load_subjects() -> list[str]:
+def load_subjects() -> list[dict]:
     try:
-        return json.loads((DATA_DIR / "subjects.json").read_text(encoding="utf-8"))
+        raw = json.loads((DATA_DIR / "subjects.json").read_text(encoding="utf-8"))
     except Exception:
         return []
+    out = []
+    for i, s in enumerate(raw):
+        if isinstance(s, str):
+            out.append({"name": s, "color": palette.default_color(i)})
+        elif isinstance(s, dict) and s.get("name"):
+            out.append({"name": s["name"], "color": s.get("color") or palette.default_color(i)})
+    return out
 
 
-def save_subjects(subjects: list[str]) -> None:
+def save_subjects(subjects: list[dict]) -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     tmp = DATA_DIR / "subjects.json.tmp"
     tmp.write_text(json.dumps(subjects, indent=2, ensure_ascii=False), encoding="utf-8")
     tmp.replace(DATA_DIR / "subjects.json")
+
+
+def subject_color(name: str) -> str | None:
+    for s in load_subjects():
+        if s["name"] == name:
+            return s["color"]
+    return None
 
 
 def load_history() -> list[dict]:
