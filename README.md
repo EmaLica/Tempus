@@ -25,9 +25,9 @@ Built with GTK4 and libadwaita. Stays out of your way while you work.
 - **Auto-cycle** — after each focus session Tempus suggests the right break and advances automatically
 - **Session dots** — shows how many focus sessions you have completed in the current cycle
 - **Todo list** — add tasks inline or load them from a Markdown file; export back to Markdown when done
-- **Subjects** — assign a subject (Math, Physics, Literature…) to any task; add custom subjects on the fly or manage them in Preferences
+- **Subjects** — assign a subject to any task, each with its own colour shown as a dot next to the task; add subjects on the fly or manage them and their colours in Preferences
 - **Pomodoro counter per task** — each task tracks how many focus sessions have been spent on it
-- **Focus history** — switch between Today, Week, Month and Semester views; Today breaks down by task, longer ranges show time per subject so you can see exactly where your hours go
+- **Focus history** — switch between Today, Week, Month and Semester views; Today breaks down by task, longer ranges show time per subject in matching colours so you can see exactly where your hours go
 - **Semester view** — defaults to the last six months; set a custom start and end date in Preferences if your semester has fixed boundaries
 - **Preferences** — change every duration and the cycle length live, no restart needed
 - **Focus mode** — optionally silence GNOME notifications while a session is running
