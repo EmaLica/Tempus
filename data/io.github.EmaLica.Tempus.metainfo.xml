@@ -43,6 +43,11 @@
   </developer>
 
   <releases>
+    <release version="0.5.0" date="2026-06-30">
+      <description>
+        <p>Subjects are now colour-coded. Each subject has its own colour, shown as a dot next to tasks and used in the per-subject stats bars. Pick or change a subject's colour in Preferences.</p>
+      </description>
+    </release>
     <release version="0.4.0" date="2026-06-23">
       <description>
         <p>Alert sound replaced with a short ascending chime (do-mi-sol-do). Volume control added in Preferences under Notifications.</p>
