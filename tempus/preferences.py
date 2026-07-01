@@ -122,6 +122,17 @@ class TempusPreferences(Adw.PreferencesWindow):
         vol_row.add_suffix(vol_scale)
         vol_row.set_activatable_widget(vol_scale)
         notif_group.add(vol_row)
+
+        start_row = Adw.SwitchRow()
+        start_row.set_title("Session start sound")
+        start_row.set_subtitle("Play a sound when you start a session")
+        if self._settings:
+            try:
+                start_row.set_active(self._settings.get_boolean("start-sound"))
+            except Exception:
+                start_row.set_active(True)
+        start_row.connect("notify::active", self._on_start_sound_changed)
+        notif_group.add(start_row)
         page.add(notif_group)
 
         self._subjects_group = Adw.PreferencesGroup()
@@ -289,6 +300,13 @@ class TempusPreferences(Adw.PreferencesWindow):
         if self._settings:
             try:
                 self._settings.set_int("alert-volume", int(scale.get_value()))
+            except Exception:
+                pass
+
+    def _on_start_sound_changed(self, row: Adw.SwitchRow, _param) -> None:
+        if self._settings:
+            try:
+                self._settings.set_boolean("start-sound", row.get_active())
             except Exception:
                 pass
 

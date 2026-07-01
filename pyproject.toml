@@ -17,3 +17,6 @@ tempus = "tempus.main:main"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["tempus*"]
+
+[tool.setuptools.package-data]
+tempus = ["sounds/*.mp3"]

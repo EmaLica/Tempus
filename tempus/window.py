@@ -1,5 +1,6 @@
 import math
 import time
+from pathlib import Path
 import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -16,6 +17,8 @@ from . import storage
 
 RING_SIZE = 224
 RING_LINE = 10
+
+SOUNDS_DIR = Path(__file__).resolve().parent / "sounds"
 
 SESSION_COLORS: dict[SessionType, tuple[float, float, float]] = {
     SessionType.FOCUS:       (0.847, 0.169, 0.169),
@@ -210,7 +213,7 @@ class TempusWindow(Adw.ApplicationWindow):
         self._update_start_icon()
         self._refresh_dots()
         self._dnd_set_focus_mode(False)
-        self._play_alert()
+        self._play_sound("finish.mp3")
         self._send_notification()
         if self.timer.session_type == SessionType.FOCUS:
             active_item = self._todo_panel.get_active_item()
@@ -239,30 +242,24 @@ class TempusWindow(Adw.ApplicationWindow):
         else:
             self._session_btns[SessionType.FOCUS].set_active(True)
 
-    _MELODY = [(523, 160), (659, 160), (784, 160), (1047, 320)]
-
-    def _play_alert(self):
+    def _play_sound(self, filename):
+        path = SOUNDS_DIR / filename
+        if not path.exists():
+            return
         vol = 0.7
         try:
             if self._settings:
                 vol = self._settings.get_int("alert-volume") / 100.0
         except Exception:
             pass
-        delay = 0
-        for freq, ms in self._MELODY:
-            GLib.timeout_add(delay, self._play_note, freq, ms, vol)
-            delay += ms
-
-    def _play_note(self, freq, ms, vol):
         try:
-            samples = int(44100 * ms / 1000)
-            pl = Gst.parse_launch(
-                f"audiotestsrc wave=sine freq={freq} samplesperbuffer={samples} num-buffers=1 ! "
-                f"volume volume={vol:.2f} ! audioconvert ! autoaudiosink"
-            )
+            pl = Gst.ElementFactory.make("playbin", None)
+            pl.set_property("uri", path.as_uri())
+            pl.set_property("volume", vol)
             pl.set_state(Gst.State.PLAYING)
             bus = pl.get_bus()
             bus.add_signal_watch()
+            # il closure su pl lo tiene vivo finché il bus watch è attivo
             bus.connect(
                 "message",
                 lambda _, m, p: p.set_state(Gst.State.NULL)
@@ -271,7 +268,6 @@ class TempusWindow(Adw.ApplicationWindow):
             )
         except Exception:
             pass
-        return False
 
     def _send_notification(self):
         app = self.get_application()
@@ -286,10 +282,22 @@ class TempusWindow(Adw.ApplicationWindow):
             if self.timer.session_type == SessionType.FOCUS:
                 self._dnd_set_focus_mode(False)
         else:
+            # solo su avvio da fermo, non sul resume da pausa
+            fresh = self.timer.state == TimerState.IDLE
             self.timer.start()
+            if fresh and self._start_sound_enabled():
+                self._play_sound("start.mp3")
             if self.timer.session_type == SessionType.FOCUS:
                 self._dnd_set_focus_mode(True)
         self._update_start_icon()
+
+    def _start_sound_enabled(self) -> bool:
+        if not self._settings:
+            return True
+        try:
+            return self._settings.get_boolean("start-sound")
+        except Exception:
+            return True
 
     def _do_reset(self):
         self._dnd_set_focus_mode(False)
