@@ -31,7 +31,7 @@ Built with GTK4 and libadwaita. Stays out of your way while you work.
 - **Semester view** — defaults to the last six months; set a custom start and end date in Preferences if your semester has fixed boundaries
 - **Preferences** — change every duration and the cycle length live, no restart needed
 - **Focus mode** — optionally silence GNOME notifications while a session is running
-- **Sound alert** — an audible tone plays the moment a session ends
+- **Sound alerts** — a sound plays when a session starts and when it ends (start sound can be turned off in Preferences)
 - **Desktop notifications** — notified the moment a session ends, even if the window is minimised
 
 <div align="center">
