@@ -1,0 +1,8 @@
+{
+  "uuid": "tempus@emalica.github.io",
+  "name": "Tempus",
+  "description": "Panel widget for the Tempus Pomodoro timer: live countdown in the top bar plus play/pause, reset, skip and session switching. Works while the Tempus app is running.",
+  "shell-version": ["45", "46", "47", "48", "49", "50"],
+  "url": "https://github.com/EmaLica/Tempus",
+  "version": 1
+}
