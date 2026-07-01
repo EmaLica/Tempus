@@ -33,6 +33,7 @@ class TempusWindow(Adw.ApplicationWindow):
         super().__init__(**kwargs)
         self.timer = Timer()
         self.timer.connect_finish(self._on_finish)
+        self._state_cb = None
 
         self.set_title("Tempus")
         self.set_default_size(420, 660)
@@ -320,6 +321,31 @@ class TempusWindow(Adw.ApplicationWindow):
             else "media-playback-start-symbolic"
         )
         self._start_btn.set_icon_name(icon)
+        self._push_state()
+
+    def set_state_listener(self, cb):
+        self._state_cb = cb
+
+    def _push_state(self):
+        if self._state_cb:
+            self._state_cb()
+
+    # comandi dal widget nel panel: passano dai metodi normali così DND,
+    # suoni, cronologia e dots restano allineati coi pulsanti dell'app
+    def remote_toggle(self):
+        self._do_start_pause()
+
+    def remote_reset(self):
+        self._do_reset()
+
+    def remote_skip(self):
+        self._do_skip()
+
+    def remote_set_session(self, stype: SessionType):
+        self._session_btns[stype].set_active(True)
+
+    def remote_present(self):
+        self.present()
 
     def _refresh_dots(self):
         child = self._dots_box.get_first_child()
@@ -401,6 +427,7 @@ class TempusWindow(Adw.ApplicationWindow):
             pass
 
     def _on_tick(self):
+        self._push_state()
         self._time_label.set_label(self.timer.format_time())
         self._drawing.queue_draw()
 
