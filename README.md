@@ -181,6 +181,20 @@ flatpak uninstall io.github.EmaLica.Tempus
 
 ---
 
+## GNOME Shell widget
+
+Tempus ships an optional panel indicator that mirrors the timer in the top bar — live `12:34 · Focus` countdown plus play/pause, reset, skip and session switching, without switching back to the window. It talks to the running app over D-Bus, so it stays in sync while Tempus is open; close the app and the indicator dims, click it to launch Tempus again.
+
+```bash
+ln -s "$PWD/shell-extension" \
+  ~/.local/share/gnome-shell/extensions/tempus@emalica.github.io
+gnome-extensions enable tempus@emalica.github.io
+```
+
+On Wayland, log out and back in first so the shell picks up the new extension. Full details in [`shell-extension/INSTALL.md`](shell-extension/INSTALL.md).
+
+---
+
 ## Todo list — Markdown format
 
 Tempus imports and exports the standard GFM task-list syntax:
