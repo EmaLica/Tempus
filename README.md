@@ -11,8 +11,8 @@ Focus in clean 25 minute blocks, tag what you're working on, and see exactly whe
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![GNOME](https://img.shields.io/badge/GNOME-GTK4%20%2B%20Adwaita-4A86CF)](https://www.gnome.org/)
 
-<img src="docs/screenshot-tasks.png" alt="Focus session with todo list" width="380"/>
-<img src="docs/screenshot-stats.png" alt="Focus time broken down by subject" width="380"/>
+<img src="docs/screenshot-tasks.png?v=2" alt="Focus session with todo list" width="440"/>
+<img src="docs/screenshot-stats.png?v=2" alt="Focus time broken down by subject" width="440"/>
 
 </div>
 
@@ -35,8 +35,8 @@ Focus in clean 25 minute blocks, tag what you're working on, and see exactly whe
 - **No restart, ever.** Change any duration or the cycle length in Preferences and it applies live.
 
 <div align="center">
-<img src="docs/screenshot-preferences.png" alt="Preferences" width="360"/>
-<img src="docs/screenshot-subjects.png" alt="Subjects with custom colours" width="360"/>
+<img src="docs/screenshot-preferences.png?v=2" alt="Preferences" width="440"/>
+<img src="docs/screenshot-subjects.png?v=2" alt="Subjects with custom colours" width="440"/>
 </div>
 
 ---
