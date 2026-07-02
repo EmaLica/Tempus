@@ -4,15 +4,15 @@
 
 # Tempus
 
-**A focused Pomodoro timer for GNOME**
+**A Pomodoro timer for GNOME that stays out of your way.**
 
-Built with GTK4 and libadwaita. Stays out of your way while you work.
+Focus in clean 25 minute blocks, tag what you're working on, and see exactly where your hours go. Native GTK4 and libadwaita, no clutter, no settings you'll never touch.
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![GNOME](https://img.shields.io/badge/GNOME-GTK4%20%2B%20Adwaita-4A86CF)](https://www.gnome.org/)
 
-<img src="docs/screenshot-tasks.png" alt="Focus session with todo list" width="300"/>
-<img src="docs/screenshot-stats.png" alt="Today's focus stats" width="300"/>
+<img src="docs/screenshot-tasks.png" alt="Focus session with todo list" width="380"/>
+<img src="docs/screenshot-stats.png" alt="Focus time broken down by subject" width="380"/>
 
 </div>
 
@@ -20,22 +20,23 @@ Built with GTK4 and libadwaita. Stays out of your way while you work.
 
 ## Features
 
-- **Four session types** — Focus, Short Break, Long Break, and Custom, each with its own configurable duration
-- **Circular progress ring** — colour-coded by session type so you can tell at a glance where you are
-- **Auto-cycle** — after each focus session Tempus suggests the right break and advances automatically
-- **Session dots** — shows how many focus sessions you have completed in the current cycle
-- **Todo list** — add tasks inline or load them from a Markdown file; export back to Markdown when done
-- **Subjects** — assign a subject to any task, each with its own colour shown as a dot next to the task; add subjects on the fly or manage them and their colours in Preferences
-- **Pomodoro counter per task** — each task tracks how many focus sessions have been spent on it
-- **Focus history** — switch between Today, Week, Month and Semester views; Today breaks down by task, longer ranges show time per subject in matching colours so you can see exactly where your hours go
-- **Semester view** — defaults to the last six months; set a custom start and end date in Preferences if your semester has fixed boundaries
-- **Preferences** — change every duration and the cycle length live, no restart needed
-- **Focus mode** — optionally silence GNOME notifications while a session is running
-- **Sound alerts** — a sound plays when a session starts and when it ends (start sound can be turned off in Preferences)
-- **Desktop notifications** — notified the moment a session ends, even if the window is minimised
+- **Four session types.** Focus, Short Break, Long Break and Custom, each with a duration you can change on the fly.
+- **A ring that shows where you are.** The progress ring is colour-coded per session type, with dots underneath counting the focus sessions in your current cycle.
+- **Auto-cycle.** Finish a focus block and Tempus lines up the right break and advances on its own.
+- **Todo list that sticks around.** Add tasks inline or import them from Markdown, export them back when you're done. Standard GFM checkboxes, nothing proprietary.
+- **Subjects.** Tag any task with a subject like Thesis, Coursework or Reading, each with its own colour shown as a dot beside the task. Add them on the fly or manage them in Preferences.
+- **Per-task pomodoro count.** Every task keeps a running tally of the focus sessions you've poured into it.
+- **History that actually adds up.** Flip between Today, Week, Month and Semester. Today breaks down by task, longer ranges group your time by subject in matching colours so you can see exactly where the hours went.
+- **Semester view.** Defaults to the last six months, or pin a fixed start and end date if your term has real boundaries.
+- **Focus mode.** Silences GNOME notifications while a session runs and restores them the moment you stop.
+- **Live countdown in the window title.** Glance at the taskbar and read `12:34 · Focus` without switching back to the app.
+- **Sound alerts with volume control.** A chime when a session starts and ends. Mute the start sound if it gets on your nerves.
+- **Desktop notifications.** Pinged the moment a session ends, even with the window minimised.
+- **No restart, ever.** Change any duration or the cycle length in Preferences and it applies live.
 
 <div align="center">
-<img src="docs/screenshot-preferences.png" alt="Preferences panel" width="280"/>
+<img src="docs/screenshot-preferences.png" alt="Preferences" width="360"/>
+<img src="docs/screenshot-subjects.png" alt="Subjects with custom colours" width="360"/>
 </div>
 
 ---
