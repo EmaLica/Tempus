@@ -186,6 +186,10 @@ flatpak uninstall io.github.EmaLica.Tempus
 
 Tempus ships an optional panel indicator that mirrors the timer in the top bar — a session-coloured dot and a live `12:34 · Focus` countdown, plus play/pause, reset, skip and session switching, without switching back to the window. It talks to the running app over D-Bus, so it stays in sync while Tempus is open; close the app and the indicator dims, click it to launch Tempus again.
 
+<div align="center">
+<img src="docs/WidgetFocus.png" alt="Panel widget during a focus session" width="220"/> <img src="docs/WidgetShortBreak.png" alt="Panel widget during a short break" width="220"/>
+</div>
+
 ```bash
 ln -s "$PWD/shell-extension" \
   ~/.local/share/gnome-shell/extensions/tempus@emalica.github.io

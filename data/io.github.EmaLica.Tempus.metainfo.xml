@@ -39,6 +39,14 @@
       <caption>Colour-coded subjects for your tasks</caption>
       <image>https://raw.githubusercontent.com/EmaLica/Tempus/main/docs/subjects.png</image>
     </screenshot>
+    <screenshot>
+      <caption>GNOME Shell panel widget during a focus session</caption>
+      <image>https://raw.githubusercontent.com/EmaLica/Tempus/main/docs/WidgetFocus.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Panel widget menu during a short break</caption>
+      <image>https://raw.githubusercontent.com/EmaLica/Tempus/main/docs/WidgetShortBreak.png</image>
+    </screenshot>
   </screenshots>
 
   <launchable type="desktop-id">io.github.EmaLica.Tempus.desktop</launchable>
@@ -51,7 +59,7 @@
   </developer>
 
   <releases>
-    <release version="0.6.0" date="2026-07-10">
+    <release version="0.6.0" date="2026-07-08">
       <description>
         <p>A GNOME Shell panel widget shows the running session and countdown right in the top bar, with a coloured dot for the current session type. Click it to start, pause, reset, skip or switch session without opening the app. The timer is now also controllable over D-Bus.</p>
       </description>
