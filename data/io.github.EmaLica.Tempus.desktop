@@ -9,5 +9,5 @@ Type=Application
 Categories=GNOME;GTK;Utility;
 Keywords=pomodoro;timer;focus;productivity;todo;
 StartupNotify=true
-StartupWMClass=tempus
+StartupWMClass=io.github.EmaLica.Tempus
 X-GNOME-UsesNotifications=true

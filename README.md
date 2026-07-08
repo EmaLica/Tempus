@@ -137,10 +137,10 @@ This only needs to be done once per machine.
 
 ```bash
 flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-flatpak install flathub org.gnome.Platform//48 org.gnome.Sdk//48
+flatpak install flathub org.gnome.Platform//50 org.gnome.Sdk//50
 ```
 
-> **Note:** if `48` is not yet available on your system, try `47` or run
+> **Note:** if `50` is not yet available on your system, run
 > `flatpak remote-ls flathub | grep org.gnome.Platform` to see which versions are listed.
 
 #### Step 3 — Clone the repository
