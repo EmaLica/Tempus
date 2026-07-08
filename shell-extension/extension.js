@@ -30,6 +30,15 @@ const IFACE = `
 
 const TimerProxy = Gio.DBusProxy.makeProxyWrapper(IFACE);
 
+// stessi colori del ring nell'app (SESSION_COLORS in window.py)
+const SESSION_COLOR = {
+    'focus': '#d82b2b',
+    'short-break': '#2eb764',
+    'long-break': '#3485e4',
+    'custom': '#9c4fd4',
+};
+const OFF_COLOR = 'rgba(255,255,255,0.45)';
+
 const SESSIONS = [
     ['focus', 'Focus'],
     ['short-break', 'Short Break'],
@@ -43,16 +52,17 @@ class Indicator extends PanelMenu.Button {
         super._init(0.0, 'Tempus');
 
         const box = new St.BoxLayout({style_class: 'panel-status-menu-box'});
-        this._icon = new St.Icon({
-            icon_name: 'alarm-symbolic',
-            style_class: 'system-status-icon',
+        this._dot = new St.Label({
+            y_align: Clutter.ActorAlign.CENTER,
+            style_class: 'tempus-dot',
+            text: '○',
         });
         this._label = new St.Label({
             y_align: Clutter.ActorAlign.CENTER,
             style_class: 'tempus-panel-label',
         });
         this._label.visible = false;
-        box.add_child(this._icon);
+        box.add_child(this._dot);
         box.add_child(this._label);
         this.add_child(box);
 
@@ -60,6 +70,7 @@ class Indicator extends PanelMenu.Button {
 
         this._proxy = null;
         this._propsId = 0;
+        this._destroyed = false;
         this._watchId = Gio.bus_watch_name(
             Gio.BusType.SESSION, BUS_NAME,
             Gio.BusNameWatcherFlags.NONE,
@@ -88,16 +99,18 @@ class Indicator extends PanelMenu.Button {
         this._skipItem.connect('activate', () => this._call('Skip'));
         this.menu.addMenuItem(this._skipItem);
 
-        this._sessionSub = new PopupMenu.PopupSubMenuMenuItem('Session');
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
+        this._sessionItems = [];
         for (const [id, label] of SESSIONS) {
             const item = new PopupMenu.PopupMenuItem(label);
             item.connect('activate', () => {
                 if (this._proxy)
                     this._proxy.SetSessionTypeRemote(id, () => {});
             });
-            this._sessionSub.menu.addMenuItem(item);
+            this.menu.addMenuItem(item);
+            this._sessionItems.push([id, item]);
         }
-        this.menu.addMenuItem(this._sessionSub);
 
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
@@ -107,17 +120,20 @@ class Indicator extends PanelMenu.Button {
     }
 
     _onAppeared() {
-        this._proxy = new TimerProxy(Gio.DBus.session, BUS_NAME, OBJECT_PATH,
-            (proxy, err) => {
-                if (err) {
-                    this._proxy = null;
-                    this._sync();
-                    return;
-                }
-                this._propsId = this._proxy.connect(
-                    'g-properties-changed', () => this._sync());
+        if (this._proxy)
+            return;
+        new TimerProxy(Gio.DBus.session, BUS_NAME, OBJECT_PATH, (proxy, err) => {
+            if (this._destroyed)
+                return;
+            if (err) {
+                this._proxy = null;
                 this._sync();
-            });
+                return;
+            }
+            this._proxy = proxy;
+            this._propsId = proxy.connect('g-properties-changed', () => this._sync());
+            this._sync();
+        });
     }
 
     _onVanished() {
@@ -130,9 +146,8 @@ class Indicator extends PanelMenu.Button {
     }
 
     _call(method) {
-        if (!this._proxy)
-            return;
-        this._proxy[`${method}Remote`](() => {});
+        if (this._proxy)
+            this._proxy[`${method}Remote`](() => {});
     }
 
     _open() {
@@ -146,34 +161,54 @@ class Indicator extends PanelMenu.Button {
     }
 
     _sync() {
-        const running = this._proxy ? this._proxy.Running : false;
-        const state = this._proxy ? this._proxy.State : null;
+        const p = this._proxy;
+        const state = p ? p.State : null;
+        const stype = p ? p.SessionType : 'focus';
         const active = state === 'running' || state === 'paused';
+        const color = SESSION_COLOR[stype] || SESSION_COLOR['focus'];
 
-        this.reactive = true;
-        this._icon.opacity = this._proxy ? 255 : 130;
-
-        if (this._proxy && active) {
-            this._label.text = `${this._proxy.TimeLabel} · ${this._proxy.SessionName}`;
+        if (p && active) {
+            this._dot.text = '●';
+            this._dot.style = `color: ${color};`;
+            this._label.text = p.TimeLabel;
             this._label.visible = true;
+            this.opacity = 255;
+        } else if (p) {
+            this._dot.text = '○';
+            this._dot.style = `color: ${color};`;
+            this._label.text = p.SessionName;
+            this._label.visible = true;
+            this.opacity = 255;
         } else {
+            this._dot.text = '○';
+            this._dot.style = `color: ${OFF_COLOR};`;
             this._label.visible = false;
+            this.opacity = 160;
         }
 
-        const on = this._proxy !== null;
-        this._toggleItem.label.text = running ? 'Pause' : 'Start';
-        this._toggleItem.setSensitive(on);
-        this._resetItem.setSensitive(on);
-        this._skipItem.setSensitive(on);
-        this._sessionSub.setSensitive(on);
+        let toggle = 'Start';
+        if (state === 'running')
+            toggle = 'Pause';
+        else if (state === 'paused')
+            toggle = 'Resume';
+        this._toggleItem.label.text = toggle;
 
-        if (this._proxy)
-            this._timeItem.label.text = `${this._proxy.SessionName} · ${this._proxy.TimeLabel}`;
-        else
-            this._timeItem.label.text = 'Tempus not running';
+        this._toggleItem.setSensitive(!!p);
+        this._resetItem.setSensitive(!!p);
+        this._skipItem.setSensitive(!!p);
+
+        for (const [id, item] of this._sessionItems) {
+            item.setSensitive(!!p);
+            item.setOrnament(p && stype === id
+                ? PopupMenu.Ornament.DOT : PopupMenu.Ornament.NONE);
+        }
+
+        this._timeItem.label.text = p
+            ? `${p.SessionName} · ${p.TimeLabel}` : 'Tempus not running';
     }
 
     destroy() {
+        this._destroyed = true;
         if (this._watchId) {
             Gio.bus_unwatch_name(this._watchId);
             this._watchId = 0;

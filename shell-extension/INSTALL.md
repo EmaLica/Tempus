@@ -1,14 +1,21 @@
 # Tempus GNOME Shell widget
 
-A panel indicator that mirrors the Tempus timer: live `MM:SS · Session`
-countdown in the top bar plus play/pause, reset, skip and session switching.
-It talks to the running app over D-Bus, so the widget is live while Tempus is
-open; when the app is closed the indicator dims and clicking it launches Tempus.
+A panel indicator that mirrors the Tempus timer: a session-coloured dot with a
+live `MM:SS` countdown in the top bar, plus play/pause, reset, skip and session
+switching. The dot takes the colour of the running session (red Focus, green
+short break, blue long break, purple custom); it hollows out when idle and greys
+out when Tempus is closed — clicking it launches the app.
+
+It talks to the running app over D-Bus, so it stays in sync while Tempus is open.
 
 Requires Tempus **0.6+** (older builds don't export the D-Bus interface) and
 GNOME Shell 45–50.
 
 ## Install
+
+The easiest way, once it's published, is one click from
+[extensions.gnome.org](https://extensions.gnome.org). To install straight from
+this repo instead:
 
 Symlink (or copy) this folder into the extensions directory using the UUID as
 the name:
@@ -33,9 +40,9 @@ or flip it on in the **Extensions** app.
 
 ## Use
 
-Open Tempus. The countdown shows up in the panel. Click the indicator for the
-controls. Close Tempus and the indicator dims — clicking it (or "Open Tempus")
-launches the app again.
+Open Tempus. The coloured dot and countdown show up in the panel. Click the
+indicator for the controls. Close Tempus and the indicator greys out — clicking
+it (or "Open Tempus") launches the app again.
 
 ## Uninstall
 

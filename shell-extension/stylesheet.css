@@ -1,4 +1,8 @@
+.tempus-dot {
+    font-size: 0.9em;
+}
+
 .tempus-panel-label {
-    margin-left: 6px;
+    margin-left: 5px;
     font-feature-settings: "tnum";
 }
