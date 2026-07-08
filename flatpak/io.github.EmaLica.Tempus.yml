@@ -33,5 +33,5 @@ modules:
     sources:
       - type: git
         url: https://github.com/EmaLica/Tempus.git
-        tag: v0.5.1
+        tag: v0.6.0
         commit: c98203515f9971100d218ffa45929263511dc1fd
