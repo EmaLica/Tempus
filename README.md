@@ -29,6 +29,7 @@ Focus in clean 25 minute blocks, tag what you're working on, and see exactly whe
 - **Semester view.** Defaults to the last six months, or pin a fixed start and end date if your term has real boundaries.
 - **Focus mode.** Silences GNOME notifications while a session runs and restores them the moment you stop.
 - **Live countdown in the window title.** Glance at the taskbar and read `12:34 · Focus` without switching back to the app.
+- **GNOME Shell panel widget.** An optional top-bar indicator with a session-coloured dot and live countdown — start, pause, skip or switch session without opening the window.
 - **Sound alerts with volume control.** A chime when a session starts and ends. Mute the start sound if it gets on your nerves.
 - **Desktop notifications.** Pinged the moment a session ends, even with the window minimised.
 - **No restart, ever.** Change any duration or the cycle length in Preferences and it applies live.
@@ -183,7 +184,7 @@ flatpak uninstall io.github.EmaLica.Tempus
 
 ## GNOME Shell widget
 
-Tempus ships an optional panel indicator that mirrors the timer in the top bar — live `12:34 · Focus` countdown plus play/pause, reset, skip and session switching, without switching back to the window. It talks to the running app over D-Bus, so it stays in sync while Tempus is open; close the app and the indicator dims, click it to launch Tempus again.
+Tempus ships an optional panel indicator that mirrors the timer in the top bar — a session-coloured dot and a live `12:34 · Focus` countdown, plus play/pause, reset, skip and session switching, without switching back to the window. It talks to the running app over D-Bus, so it stays in sync while Tempus is open; close the app and the indicator dims, click it to launch Tempus again.
 
 ```bash
 ln -s "$PWD/shell-extension" \
