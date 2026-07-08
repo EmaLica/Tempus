@@ -1,8 +1,10 @@
 .tempus-dot {
-    font-size: 0.9em;
+    min-width: 10px;
+    min-height: 10px;
+    border-radius: 999px;
 }
 
 .tempus-panel-label {
-    margin-left: 5px;
+    margin-left: 6px;
     font-feature-settings: "tnum";
 }

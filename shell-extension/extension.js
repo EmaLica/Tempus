@@ -52,10 +52,9 @@ class Indicator extends PanelMenu.Button {
         super._init(0.0, 'Tempus');
 
         const box = new St.BoxLayout({style_class: 'panel-status-menu-box'});
-        this._dot = new St.Label({
+        this._dot = new St.Widget({
             y_align: Clutter.ActorAlign.CENTER,
             style_class: 'tempus-dot',
-            text: '○',
         });
         this._label = new St.Label({
             y_align: Clutter.ActorAlign.CENTER,
@@ -168,20 +167,17 @@ class Indicator extends PanelMenu.Button {
         const color = SESSION_COLOR[stype] || SESSION_COLOR['focus'];
 
         if (p && active) {
-            this._dot.text = '●';
-            this._dot.style = `color: ${color};`;
+            this._dot.style = `background-color: ${color};`;
             this._label.text = p.TimeLabel;
             this._label.visible = true;
             this.opacity = 255;
         } else if (p) {
-            this._dot.text = '○';
-            this._dot.style = `color: ${color};`;
+            this._dot.style = `border: 2px solid ${color}; background-color: transparent;`;
             this._label.text = p.SessionName;
             this._label.visible = true;
             this.opacity = 255;
         } else {
-            this._dot.text = '○';
-            this._dot.style = `color: ${OFF_COLOR};`;
+            this._dot.style = `border: 2px solid ${OFF_COLOR}; background-color: transparent;`;
             this._label.visible = false;
             this.opacity = 160;
         }
