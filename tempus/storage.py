@@ -8,6 +8,10 @@ from . import palette
 
 DATA_DIR = Path(GLib.get_user_data_dir()) / "tempus"
 
+# dentro il sandbox le impostazioni di org.gnome.desktop.* finiscono nel dconf
+# privato dell'app e non toccano l'host, quindi il focus mode va disattivato
+IN_SANDBOX = Path("/.flatpak-info").exists()
+
 
 def load_tasks() -> list[dict]:
     path = DATA_DIR / "tasks.json"

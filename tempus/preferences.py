@@ -82,22 +82,23 @@ class TempusPreferences(Adw.PreferencesWindow):
         cycle_group.add(self._cycle_row)
         page.add(cycle_group)
 
-        gnome_group = Adw.PreferencesGroup()
-        gnome_group.set_title("GNOME Integration")
+        if not storage.IN_SANDBOX:
+            gnome_group = Adw.PreferencesGroup()
+            gnome_group.set_title("GNOME Integration")
 
-        dnd_row = Adw.SwitchRow()
-        dnd_row.set_title("Focus mode")
-        dnd_row.set_subtitle("Disable notifications while a focus session is running")
+            dnd_row = Adw.SwitchRow()
+            dnd_row.set_title("Focus mode")
+            dnd_row.set_subtitle("Disable notifications while a focus session is running")
 
-        if self._settings:
-            try:
-                dnd_row.set_active(self._settings.get_boolean("dnd-during-focus"))
-            except Exception:
-                dnd_row.set_active(True)
+            if self._settings:
+                try:
+                    dnd_row.set_active(self._settings.get_boolean("dnd-during-focus"))
+                except Exception:
+                    dnd_row.set_active(True)
 
-        dnd_row.connect("notify::active", self._on_dnd_changed)
-        gnome_group.add(dnd_row)
-        page.add(gnome_group)
+            dnd_row.connect("notify::active", self._on_dnd_changed)
+            gnome_group.add(dnd_row)
+            page.add(gnome_group)
 
         notif_group = Adw.PreferencesGroup()
         notif_group.set_title("Notifications")

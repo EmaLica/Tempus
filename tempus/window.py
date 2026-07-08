@@ -375,7 +375,7 @@ class TempusWindow(Adw.ApplicationWindow):
         self._nav.push(self._stats_page)
 
     def _dnd_set_focus_mode(self, entering: bool) -> None:
-        if self._settings is None:
+        if storage.IN_SANDBOX or self._settings is None:
             return
         try:
             if not self._settings.get_boolean("dnd-during-focus"):
@@ -400,6 +400,8 @@ class TempusWindow(Adw.ApplicationWindow):
             pass
 
     def _restore_dnd_if_crashed(self) -> None:
+        if storage.IN_SANDBOX:
+            return
         try:
             lock = storage.DATA_DIR / "dnd.lock"
             if lock.exists():
