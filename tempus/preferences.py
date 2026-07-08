@@ -157,10 +157,10 @@ class TempusPreferences(Adw.PreferencesWindow):
         self._semester_switch.set_subtitle("Off uses the last 6 months")
 
         self._semester_start = Adw.EntryRow()
-        self._semester_start.set_title("Start date")
+        self._semester_start.set_title("Start date (YYYY-MM-DD)")
 
         self._semester_end = Adw.EntryRow()
-        self._semester_end.set_title("End date")
+        self._semester_end.set_title("End date (YYYY-MM-DD)")
 
         if self._settings:
             try:
