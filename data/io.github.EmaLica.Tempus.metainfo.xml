@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2026 EmaLica -->
 <component type="desktop-application">
   <id>io.github.EmaLica.Tempus</id>
   <metadata_license>CC0-1.0</metadata_license>
@@ -25,27 +26,27 @@
   <screenshots>
     <screenshot type="default">
       <caption>Focus session with the todo list open</caption>
-      <image>https://raw.githubusercontent.com/EmaLica/Tempus/main/docs/home.png</image>
+      <image>https://raw.githubusercontent.com/EmaLica/Tempus/6007077e2c574e49ff77d215d898df01e673467b/docs/home.png</image>
     </screenshot>
     <screenshot>
       <caption>Focus time broken down by subject</caption>
-      <image>https://raw.githubusercontent.com/EmaLica/Tempus/main/docs/stats.png</image>
+      <image>https://raw.githubusercontent.com/EmaLica/Tempus/6007077e2c574e49ff77d215d898df01e673467b/docs/stats.png</image>
     </screenshot>
     <screenshot>
       <caption>Setting session durations in Preferences</caption>
-      <image>https://raw.githubusercontent.com/EmaLica/Tempus/main/docs/preferences.png</image>
+      <image>https://raw.githubusercontent.com/EmaLica/Tempus/6007077e2c574e49ff77d215d898df01e673467b/docs/preferences.png</image>
     </screenshot>
     <screenshot>
       <caption>Colour-coded subjects for your tasks</caption>
-      <image>https://raw.githubusercontent.com/EmaLica/Tempus/main/docs/subjects.png</image>
+      <image>https://raw.githubusercontent.com/EmaLica/Tempus/6007077e2c574e49ff77d215d898df01e673467b/docs/subjects.png</image>
     </screenshot>
     <screenshot>
       <caption>GNOME Shell panel widget during a focus session</caption>
-      <image>https://raw.githubusercontent.com/EmaLica/Tempus/main/docs/WidgetFocus.png</image>
+      <image>https://raw.githubusercontent.com/EmaLica/Tempus/6007077e2c574e49ff77d215d898df01e673467b/docs/WidgetFocus.png</image>
     </screenshot>
     <screenshot>
       <caption>Panel widget menu during a short break</caption>
-      <image>https://raw.githubusercontent.com/EmaLica/Tempus/main/docs/WidgetShortBreak.png</image>
+      <image>https://raw.githubusercontent.com/EmaLica/Tempus/6007077e2c574e49ff77d215d898df01e673467b/docs/WidgetShortBreak.png</image>
     </screenshot>
   </screenshots>
 
@@ -53,6 +54,7 @@
 
   <url type="homepage">https://github.com/EmaLica/Tempus</url>
   <url type="bugtracker">https://github.com/EmaLica/Tempus/issues</url>
+  <url type="vcs-browser">https://github.com/EmaLica/Tempus</url>
 
   <developer id="io.github.emalica">
     <name>EmaLica</name>
