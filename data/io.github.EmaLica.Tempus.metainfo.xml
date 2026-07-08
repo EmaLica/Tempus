@@ -24,12 +24,20 @@
 
   <screenshots>
     <screenshot type="default">
-      <caption>Focus session running with todo list open</caption>
-      <image>https://raw.githubusercontent.com/EmaLica/Tempus/main/docs/screenshot-tasks.png</image>
+      <caption>Focus session with the todo list open</caption>
+      <image>https://raw.githubusercontent.com/EmaLica/Tempus/main/docs/home.png</image>
     </screenshot>
     <screenshot>
-      <caption>Short break session in progress</caption>
-      <image>https://raw.githubusercontent.com/EmaLica/Tempus/main/docs/screenshot-breaks.png</image>
+      <caption>Focus time broken down by subject</caption>
+      <image>https://raw.githubusercontent.com/EmaLica/Tempus/main/docs/stats.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Setting session durations in Preferences</caption>
+      <image>https://raw.githubusercontent.com/EmaLica/Tempus/main/docs/preferences.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Colour-coded subjects for your tasks</caption>
+      <image>https://raw.githubusercontent.com/EmaLica/Tempus/main/docs/subjects.png</image>
     </screenshot>
   </screenshots>
 
@@ -38,7 +46,7 @@
   <url type="homepage">https://github.com/EmaLica/Tempus</url>
   <url type="bugtracker">https://github.com/EmaLica/Tempus/issues</url>
 
-  <developer id="io.github.EmaLica">
+  <developer id="io.github.emalica">
     <name>EmaLica</name>
   </developer>
 
