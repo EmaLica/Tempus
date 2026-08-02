@@ -212,6 +212,55 @@ Tempus imports and exports the standard GFM task-list syntax:
 
 Plain `- item` lines without a checkbox are imported as uncompleted tasks.
 
+### Notes
+
+Indented lines under a task become its subtitle, so the row stays readable no
+matter how much detail the note carries:
+
+```markdown
+- [ ] Rewrite the parser
+  Split the prefix off the title first.
+  - the old regex swallowed the whole line
+```
+
+A blank line closes the note. An indented checkbox is a task of its own, not a
+note.
+
+### Estimates and subjects
+
+A task can declare how many pomodoros it should take, and Tempus tracks progress
+against it — the badge reads `● 2/5` instead of `● 2`:
+
+```markdown
+- [ ] [5🍅] Write the report
+```
+
+An optional keyword after the count is carried through untouched on export, so
+tags your notes rely on survive a round trip:
+
+```markdown
+- [ ] [5🍅 alpha] Write the report
+```
+
+Subjects are picked up from the surrounding headings. A task inherits the last
+heading that names one of the subjects you already created in the app — matching
+ignores emoji, case and punctuation, so `## 📐 Mat. Continuo — limits` assigns
+*Mat. Continuo*:
+
+```markdown
+## 📐 Mat. Continuo — limits
+- [ ] [2🍅] Sequences
+
+## Anything else
+- [ ] [1🍅] Mat. Continuo: extra exercises
+```
+
+Under a heading that matches nothing, Tempus looks for a subject name in the task
+text itself — the second task above still lands on *Mat. Continuo*. Subjects are
+never created by an import: unknown names are left unassigned.
+
+Importing replaces the whole list, so keep one file per batch of tasks.
+
 ---
 
 ## Contributing
