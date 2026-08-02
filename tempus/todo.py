@@ -201,10 +201,11 @@ class TodoPanel(Gtk.Box):
     def _build_row(self, item: TodoItem) -> Adw.ActionRow:
         row = Adw.ActionRow()
         row.set_title(GLib.markup_escape_text(item.text))
-        row.set_title_lines(1)
+        # 0 = nessun limite di righe: la riga va a capo invece di troncare con "…"
+        row.set_title_lines(0)
         if item.note:
             row.set_subtitle(GLib.markup_escape_text(item.note))
-            row.set_subtitle_lines(1)
+            row.set_subtitle_lines(0)
         if item.done:
             row.add_css_class("dim-label")
 

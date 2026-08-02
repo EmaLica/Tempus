@@ -24,7 +24,8 @@ Focus in clean 25 minute blocks, tag what you're working on, and see exactly whe
 - **Auto-cycle.** Finish a focus block and Tempus lines up the right break and advances on its own.
 - **Todo list that sticks around.** Add tasks inline or import them from Markdown, export them back when you're done. Standard GFM checkboxes, nothing proprietary.
 - **Subjects.** Tag any task with a subject like Thesis, Coursework or Reading, each with its own colour shown as a dot beside the task. Add them on the fly or manage them in Preferences.
-- **Per-task pomodoro count.** Every task keeps a running tally of the focus sessions you've poured into it.
+- **Markdown that carries more than a checkbox.** An imported task can declare how many pomodoros it should take and which subject it belongs to, and any detail you indent underneath becomes its subtitle. Notes wrap to the window width instead of being cut off, so a long one stays readable.
+- **Per-task pomodoro count.** Every task keeps a running tally of the focus sessions you've poured into it — against your estimate, when the task declares one.
 - **History that actually adds up.** Flip between Today, Week, Month and Semester. Today breaks down by task, longer ranges group your time by subject in matching colours so you can see exactly where the hours went.
 - **Semester view.** Defaults to the last six months, or pin a fixed start and end date if your term has real boundaries.
 - **Focus mode.** Silences GNOME notifications while a session runs and restores them the moment you stop.
@@ -225,6 +226,10 @@ matter how much detail the note carries:
 
 A blank line closes the note. An indented checkbox is a task of its own, not a
 note.
+
+Notes are never truncated: they wrap over as many lines as they need, reflowing
+when you resize the window. Titles behave the same way, so nothing is hidden
+behind an ellipsis — keep titles short if you want compact rows.
 
 ### Estimates and subjects
 
