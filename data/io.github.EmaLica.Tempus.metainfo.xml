@@ -19,6 +19,7 @@
       <li>Customizable durations via Preferences</li>
       <li>Automatic session cycle with long-break suggestions</li>
       <li>Todo list with Markdown file import and export</li>
+      <li>Imported tasks can carry a pomodoro estimate, a subject and a note</li>
       <li>Desktop notifications and sound alerts on session start and end</li>
     </ul>
   </description>
@@ -61,6 +62,11 @@
   </developer>
 
   <releases>
+    <release version="0.7.0" date="2026-08-02">
+      <description>
+        <p>Markdown import now carries more than a checkbox. A task can declare how many pomodoros it should take with a [3🍅] prefix, and the badge tracks progress against it. Subjects are picked up from the surrounding headings and matched against the ones you already have, so an imported list arrives already colour-coded. Anything you indent under a task becomes its note, shown as the row subtitle, and both titles and notes now wrap to the window width instead of being cut off.</p>
+      </description>
+    </release>
     <release version="0.6.0" date="2026-07-08">
       <description>
         <p>A GNOME Shell panel widget shows the running session and countdown right in the top bar, with a coloured dot for the current session type. Click it to start, pause, reset, skip or switch session without opening the app. The timer is now also controllable over D-Bus.</p>
