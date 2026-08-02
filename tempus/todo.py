@@ -1,4 +1,3 @@
-import re
 import uuid
 import gi
 gi.require_version("Gtk", "4.0")
@@ -7,6 +6,7 @@ from gi.repository import Gtk, Adw, Gio, GObject, GLib, Pango
 
 from . import storage
 from . import palette
+from . import mdimport
 
 
 def _subject_box(name: str | None, color: str | None) -> Gtk.Box:
@@ -33,7 +33,8 @@ class TodoItem(GObject.Object):
 
     def __init__(self, text: str, done: bool = False,
                  item_id: str | None = None, pomodoros: int = 0,
-                 estimate: int = 0, subject: str | None = None):
+                 estimate: int = 0, subject: str | None = None,
+                 wave: str | None = None, note: str = ""):
         super().__init__()
         self.id = item_id or str(uuid.uuid4())
         self.text = text
@@ -41,6 +42,13 @@ class TodoItem(GObject.Object):
         self.pomodoros = pomodoros
         self.estimate = estimate
         self.subject = subject
+        self.wave = wave
+        self.note = note
+
+    def badge_label(self) -> str:
+        if self.estimate:
+            return f"● {self.pomodoros}/{self.estimate}"
+        return f"● {self.pomodoros}"
 
 
 class TodoPanel(Gtk.Box):
@@ -66,6 +74,8 @@ class TodoPanel(Gtk.Box):
                 pomodoros=r.get("pomodoros", 0),
                 estimate=r.get("estimate", 0),
                 subject=r.get("subject"),
+                wave=r.get("wave"),
+                note=r.get("note", ""),
             )
             self.add_item(item)
 
@@ -78,6 +88,8 @@ class TodoPanel(Gtk.Box):
                 "pomodoros": it.pomodoros,
                 "estimate": it.estimate,
                 "subject": it.subject,
+                "wave": it.wave,
+                "note": it.note,
             }
             for it in self.items
         ])
@@ -105,7 +117,7 @@ class TodoPanel(Gtk.Box):
                 item.pomodoros += 1
                 label = self._badge_labels.get(task_id)
                 if label:
-                    label.set_label(f"● {item.pomodoros}")
+                    label.set_label(item.badge_label())
                     label.set_visible(True)
                 self._save()
                 return
@@ -189,6 +201,10 @@ class TodoPanel(Gtk.Box):
     def _build_row(self, item: TodoItem) -> Adw.ActionRow:
         row = Adw.ActionRow()
         row.set_title(GLib.markup_escape_text(item.text))
+        row.set_title_lines(1)
+        if item.note:
+            row.set_subtitle(GLib.markup_escape_text(item.note))
+            row.set_subtitle_lines(1)
         if item.done:
             row.add_css_class("dim-label")
 
@@ -212,8 +228,8 @@ class TodoPanel(Gtk.Box):
         badge.add_css_class("accent")
         badge.set_valign(Gtk.Align.CENTER)
         badge.set_margin_end(4)
-        if item.pomodoros > 0:
-            badge.set_label(f"● {item.pomodoros}")
+        if item.pomodoros > 0 or item.estimate > 0:
+            badge.set_label(item.badge_label())
             badge.set_visible(True)
         else:
             badge.set_label("")
@@ -375,21 +391,25 @@ class TodoPanel(Gtk.Box):
             self._show_error(f"Could not open file:\n{exc}")
             return
 
+        names = [s["name"] for s in storage.load_subjects()]
+
         self._clear()
-        for line in content.splitlines():
-            line = line.strip()
-            if m := re.match(r"^- \[( |x|X)\] (.+)$", line):
-                done = m.group(1).lower() == "x"
-                self.add_item(TodoItem(m.group(2).strip(), done))
-            elif m := re.match(r"^[-*+] (.+)$", line):
-                self.add_item(TodoItem(m.group(1).strip()))
+        for t in mdimport.parse(content, names):
+            self.add_item(TodoItem(
+                text=t["text"],
+                done=t["done"],
+                estimate=t["estimate"],
+                subject=t["subject"],
+                wave=t["wave"],
+                note=t["note"],
+            ))
         self._save()
 
     def to_markdown(self) -> str:
         lines = ["# Todo", ""]
         for item in self.items:
-            mark = "x" if item.done else " "
-            lines.append(f"- [{mark}] {item.text}")
+            lines += mdimport.format_task(
+                item.text, item.done, item.estimate, item.wave, item.note)
         return "\n".join(lines) + "\n"
 
     def _on_load(self, _btn):
