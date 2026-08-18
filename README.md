@@ -25,6 +25,7 @@ Focus in clean 25 minute blocks, tag what you're working on, and see exactly whe
 - **Todo list that sticks around.** Add tasks inline or import them from Markdown, export them back when you're done. Standard GFM checkboxes, nothing proprietary.
 - **Subjects.** Tag any task with a subject like Thesis, Coursework or Reading, each with its own colour shown as a dot beside the task. Add them on the fly or manage them in Preferences.
 - **Markdown that carries more than a checkbox.** An imported task can declare how many pomodoros it should take and which subject it belongs to, and any detail you indent underneath becomes its subtitle. Notes wrap to the window width instead of being cut off, so a long one stays readable.
+- **Two-way sync with the source file.** Check off a task that came from a Markdown import and Tempus flips the same checkbox in the file it came from — no need to keep the list and the app in sync by hand.
 - **Per-task pomodoro count.** Every task keeps a running tally of the focus sessions you've poured into it — against your estimate, when the task declares one.
 - **History that actually adds up.** Flip between Today, Week, Month and Semester. Today breaks down by task, longer ranges group your time by subject in matching colours so you can see exactly where the hours went.
 - **Semester view.** Defaults to the last six months, or pin a fixed start and end date if your term has real boundaries.
@@ -265,6 +266,27 @@ text itself — the second task above still lands on *Mat. Continuo*. Subjects a
 never created by an import: unknown names are left unassigned.
 
 Importing replaces the whole list, so keep one file per batch of tasks.
+
+### Two-way sync
+
+Checking a task off in Tempus writes the same change back to the Markdown file
+it was imported from — `- [ ]` becomes `- [x]` right where the task lives, so
+the file on disk never falls behind the app:
+
+```markdown
+- [ ] [2🍅 alpha] Write the report
+```
+
+becomes
+
+```markdown
+- [x] [2🍅 alpha] Write the report
+```
+
+This only applies to tasks imported from a real checkbox. Plain `- item`
+bullets and tasks added directly in Tempus have no file to sync back to. If
+the source file was edited or moved since the import, Tempus looks for a line
+with matching text before giving up.
 
 ---
 
