@@ -154,3 +154,58 @@ def test_format_prefix_roundtrips():
 
 def test_format_prefix_omits_empty_estimate():
     assert mdimport.format_prefix("Fare X", 0, None) == "Fare X"
+
+
+def test_parse_reports_the_source_line_of_checkboxes():
+    md = "# Giorno\n\n- [ ] Uno\n- [x] Due\n"
+    tasks = mdimport.parse(md)
+    assert [t["line"] for t in tasks] == [2, 3]
+
+
+def test_parse_leaves_line_unset_for_plain_bullets():
+    task = mdimport.parse("- Fare la spesa\n")[0]
+    assert task["line"] is None
+
+
+def test_toggle_done_in_file_flips_the_checkbox(tmp_path):
+    path = tmp_path / "giorno.md"
+    path.write_text("# Giorno\n\n- [ ] [2🍅 alpha] Fare X\n- [ ] Fare Y\n")
+
+    ok = mdimport.toggle_done_in_file(str(path), 2, True, "Fare X", 2, "alpha")
+
+    assert ok
+    lines = path.read_text().splitlines()
+    assert lines[2] == "- [x] [2🍅 alpha] Fare X"
+    assert lines[3] == "- [ ] Fare Y"
+
+
+def test_toggle_done_in_file_preserves_indentation(tmp_path):
+    path = tmp_path / "giorno.md"
+    path.write_text("- [ ] Padre\n  - [ ] Figlio\n")
+
+    ok = mdimport.toggle_done_in_file(str(path), 1, True, "Figlio", 0, None)
+
+    assert ok
+    assert path.read_text().splitlines()[1] == "  - [x] Figlio"
+
+
+def test_toggle_done_in_file_falls_back_to_text_search_when_line_shifted(tmp_path):
+    path = tmp_path / "giorno.md"
+    path.write_text("# Giorno\n\n- [ ] Nuovo task\n- [ ] Fare X\n")
+
+    ok = mdimport.toggle_done_in_file(str(path), 2, True, "Fare X", 0, None)
+
+    assert ok
+    assert path.read_text().splitlines()[3] == "- [x] Fare X"
+
+
+def test_toggle_done_in_file_returns_false_when_task_not_found(tmp_path):
+    path = tmp_path / "giorno.md"
+    path.write_text("- [ ] Altro task\n")
+
+    assert mdimport.toggle_done_in_file(str(path), 0, True, "Fare X", 0, None) is False
+
+
+def test_toggle_done_in_file_returns_false_when_file_missing(tmp_path):
+    path = tmp_path / "assente.md"
+    assert mdimport.toggle_done_in_file(str(path), 0, True, "Fare X", 0, None) is False

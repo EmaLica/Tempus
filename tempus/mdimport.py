@@ -1,5 +1,6 @@
 """Parsing dei file Markdown importati nella todo list."""
 
+import os
 import re
 
 CHECKBOX_RE = re.compile(r"^- \[( |x|X)\] (.+)$")
@@ -62,7 +63,7 @@ def parse(content: str, subjects=()) -> list[dict]:
         notes.clear()
         open_note = False
 
-    for raw in content.splitlines():
+    for i, raw in enumerate(content.splitlines()):
         line = raw.strip()
         indented = raw[:1].isspace()
 
@@ -76,9 +77,11 @@ def parse(content: str, subjects=()) -> list[dict]:
             heading_subject = match_subject(m.group(1), subjects)
             continue
 
+        line_no = None
         if m := CHECKBOX_RE.match(line):
             done = m.group(1).lower() == "x"
             body = m.group(2).strip()
+            line_no = i
         elif not indented and (m := BULLET_RE.match(line)):
             done = False
             body = m.group(1).strip()
@@ -95,6 +98,7 @@ def parse(content: str, subjects=()) -> list[dict]:
             "wave": wave,
             "subject": subject,
             "note": "",
+            "line": line_no,
         })
         open_note = True
 
@@ -116,3 +120,47 @@ def format_task(text: str, done: bool, estimate: int,
     if note:
         lines.append(NOTE_INDENT + note)
     return lines
+
+
+def _checkbox_body(raw: str) -> str | None:
+    m = CHECKBOX_RE.match(raw.strip())
+    return m.group(2).strip() if m else None
+
+
+def _find_checkbox(lines: list[str], body: str) -> int | None:
+    for i, raw in enumerate(lines):
+        if _checkbox_body(raw) == body:
+            return i
+    return None
+
+
+def toggle_done_in_file(path: str, line: int | None, done: bool, text: str,
+                        estimate: int, wave: str | None) -> bool:
+    """Rispecchia lo stato done nella riga del file sorgente. True se riuscito.
+
+    L'indice di riga può essere disallineato se il file è cambiato dopo
+    l'import: in quel caso si ricerca la riga per contenuto.
+    """
+    try:
+        content = open(path, encoding="utf-8").read()
+    except OSError:
+        return False
+
+    lines = content.splitlines()
+    body = format_prefix(text, estimate, wave)
+
+    idx = line if line is not None and 0 <= line < len(lines) else None
+    if idx is None or _checkbox_body(lines[idx]) != body:
+        idx = _find_checkbox(lines, body)
+    if idx is None:
+        return False
+
+    indent = lines[idx][:len(lines[idx]) - len(lines[idx].lstrip())]
+    mark = "x" if done else " "
+    lines[idx] = f"{indent}- [{mark}] {body}"
+
+    tmp = f"{path}.tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        fh.write("\n".join(lines) + ("\n" if content.endswith("\n") else ""))
+    os.replace(tmp, path)
+    return True

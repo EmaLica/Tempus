@@ -34,7 +34,8 @@ class TodoItem(GObject.Object):
     def __init__(self, text: str, done: bool = False,
                  item_id: str | None = None, pomodoros: int = 0,
                  estimate: int = 0, subject: str | None = None,
-                 wave: str | None = None, note: str = ""):
+                 wave: str | None = None, note: str = "",
+                 source_path: str | None = None, source_line: int | None = None):
         super().__init__()
         self.id = item_id or str(uuid.uuid4())
         self.text = text
@@ -44,6 +45,8 @@ class TodoItem(GObject.Object):
         self.subject = subject
         self.wave = wave
         self.note = note
+        self.source_path = source_path
+        self.source_line = source_line
 
     def badge_label(self) -> str:
         if self.estimate:
@@ -76,6 +79,8 @@ class TodoPanel(Gtk.Box):
                 subject=r.get("subject"),
                 wave=r.get("wave"),
                 note=r.get("note", ""),
+                source_path=r.get("source_path"),
+                source_line=r.get("source_line"),
             )
             self.add_item(item)
 
@@ -90,6 +95,8 @@ class TodoPanel(Gtk.Box):
                 "subject": it.subject,
                 "wave": it.wave,
                 "note": it.note,
+                "source_path": it.source_path,
+                "source_line": it.source_line,
             }
             for it in self.items
         ])
@@ -373,6 +380,12 @@ class TodoPanel(Gtk.Box):
             row.add_css_class("dim-label")
         else:
             row.remove_css_class("dim-label")
+        if item.source_path is not None:
+            ok = mdimport.toggle_done_in_file(
+                item.source_path, item.source_line, item.done,
+                item.text, item.estimate, item.wave)
+            if not ok:
+                print(f"[tempus] could not sync task {item.id!r} back to {item.source_path!r}")
         self._save()
 
     def _on_delete(self, _btn, item: TodoItem, row: Adw.ActionRow):
@@ -403,6 +416,8 @@ class TodoPanel(Gtk.Box):
                 subject=t["subject"],
                 wave=t["wave"],
                 note=t["note"],
+                source_path=path if t["line"] is not None else None,
+                source_line=t["line"],
             ))
         self._save()
 
