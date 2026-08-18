@@ -20,6 +20,7 @@
       <li>Automatic session cycle with long-break suggestions</li>
       <li>Todo list with Markdown file import and export</li>
       <li>Imported tasks can carry a pomodoro estimate, a subject and a note</li>
+      <li>Checking off an imported task writes the change back to its source file</li>
       <li>Desktop notifications and sound alerts on session start and end</li>
     </ul>
   </description>
@@ -62,6 +63,11 @@
   </developer>
 
   <releases>
+    <release version="0.8.0" date="2026-08-18">
+      <description>
+        <p>Todo lists now sync both ways. Check off a task that was imported from a Markdown file and Tempus writes the change straight back to the checkbox it came from, so the file on disk and the app never drift apart.</p>
+      </description>
+    </release>
     <release version="0.7.0" date="2026-08-02">
       <description>
         <p>Markdown import now carries more than a checkbox. A task can declare how many pomodoros it should take with a [3🍅] prefix, and the badge tracks progress against it. Subjects are picked up from the surrounding headings and matched against the ones you already have, so an imported list arrives already colour-coded. Anything you indent under a task becomes its note, shown as the row subtitle, and both titles and notes now wrap to the window width instead of being cut off.</p>
