@@ -19,9 +19,9 @@ Focus in clean 25 minute blocks, tag what you're working on, and see exactly whe
 
 ## Features
 
-- **Four session types.** Focus, Short Break, Long Break and Custom, each with a duration you can change on the fly.
+- **Four session types.** Focus, Short Break, Long Break and Custom, each with a duration you can change on the fly. Focus itself toggles between a 25 or 50 minute block right on the main page.
 - **A ring that shows where you are.** The progress ring is colour-coded per session type, with dots underneath counting the focus sessions in your current cycle.
-- **Auto-cycle.** Finish a focus block and Tempus lines up the right break and advances on its own.
+- **Auto-cycle.** Finish a focus block and Tempus lines up the matching break — short after 25 minutes, long after 50 — and advances on its own.
 - **Todo list that sticks around.** Add tasks inline or import them from Markdown, export them back when you're done. Standard GFM checkboxes, nothing proprietary.
 - **Subjects.** Tag any task with a subject like Thesis, Coursework or Reading, each with its own colour shown as a dot beside the task. Add them on the fly or manage them in Preferences.
 - **Markdown that carries more than a checkbox.** An imported task can declare how many pomodoros it should take and which subject it belongs to, and any detail you indent underneath becomes its subtitle. Notes wrap to the window width instead of being cut off, so a long one stays readable.
