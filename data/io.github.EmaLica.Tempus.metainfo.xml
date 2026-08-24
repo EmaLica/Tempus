@@ -16,6 +16,7 @@
     <p>Features:</p>
     <ul>
       <li>Focus, Short Break, Long Break, and Custom session types</li>
+      <li>Focus sessions toggle between 25 and 50 minutes, with the matching break lined up automatically</li>
       <li>Customizable durations via Preferences</li>
       <li>Automatic session cycle with long-break suggestions</li>
       <li>Todo list with Markdown file import and export</li>
@@ -63,6 +64,11 @@
   </developer>
 
   <releases>
+    <release version="0.9.0" date="2026-08-24">
+      <description>
+        <p>Focus sessions now toggle between 25 and 50 minutes right from the main page. Picking 25 minutes lines up a short break when the session ends; picking 50 lines up a long break.</p>
+      </description>
+    </release>
     <release version="0.8.0" date="2026-08-18">
       <description>
         <p>Todo lists now sync both ways. Check off a task that was imported from a Markdown file and Tempus writes the change straight back to the checkbox it came from, so the file on disk and the app never drift apart.</p>
