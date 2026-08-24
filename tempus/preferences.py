@@ -52,13 +52,11 @@ class TempusPreferences(Adw.PreferencesWindow):
 
         self._spin_rows: dict[SessionType, Adw.SpinRow] = {}
         labels = {
-            SessionType.FOCUS: "Focus",
             SessionType.SHORT_BREAK: "Short Break",
             SessionType.LONG_BREAK: "Long Break",
             SessionType.CUSTOM: "Custom",
         }
         ranges = {
-            SessionType.FOCUS: (1, 90),
             SessionType.SHORT_BREAK: (1, 30),
             SessionType.LONG_BREAK: (1, 60),
             SessionType.CUSTOM: (1, 120),

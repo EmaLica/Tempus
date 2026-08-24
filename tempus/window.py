@@ -100,6 +100,27 @@ class TempusWindow(Adw.ApplicationWindow):
             self._session_btns[stype] = btn
         box.append(pill)
 
+        length_pill = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
+        length_pill.add_css_class("linked")
+        length_pill.set_halign(Gtk.Align.CENTER)
+
+        self._focus_length_btns: dict[int, Gtk.ToggleButton] = {}
+        first_length = None
+        for minutes in (25, 50):
+            btn = Gtk.ToggleButton(label=f"{minutes} min")
+            if first_length is None:
+                first_length = btn
+            else:
+                btn.set_group(first_length)
+            btn.connect("toggled", self._on_focus_length_toggled, minutes)
+            length_pill.append(btn)
+            self._focus_length_btns[minutes] = btn
+
+        self._focus_length_revealer = Gtk.Revealer()
+        self._focus_length_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_DOWN)
+        self._focus_length_revealer.set_child(length_pill)
+        box.append(self._focus_length_revealer)
+
         overlay = Gtk.Overlay()
         overlay.set_halign(Gtk.Align.CENTER)
         overlay.set_valign(Gtk.Align.CENTER)
@@ -168,6 +189,7 @@ class TempusWindow(Adw.ApplicationWindow):
         body.append(self._todo_revealer)
 
         main_toolbar.set_content(body)
+        self._focus_length_btns[self._focus_minutes].set_active(True)
         self._session_btns[SessionType.FOCUS].set_active(True)
 
         main_page = Adw.NavigationPage.new(main_toolbar, "Tempus")
@@ -206,9 +228,24 @@ class TempusWindow(Adw.ApplicationWindow):
     def _on_session_toggled(self, btn: Gtk.ToggleButton, stype: SessionType):
         if btn.get_active():
             self.timer.set_session_type(stype)
+            self._focus_length_revealer.set_reveal_child(stype == SessionType.FOCUS)
             self._update_start_icon()
             self._drawing.queue_draw()
             self._on_tick()
+
+    def _on_focus_length_toggled(self, btn: Gtk.ToggleButton, minutes: int):
+        if not btn.get_active():
+            return
+        self._focus_minutes = minutes
+        self.timer.durations[SessionType.FOCUS] = minutes * 60
+        if self.timer.session_type == SessionType.FOCUS:
+            self.timer.reload_durations()
+        if self._settings:
+            try:
+                self._settings.set_int("focus-duration", minutes)
+            except Exception:
+                pass
+        self._drawing.queue_draw()
 
     def _on_finish(self):
         self._update_start_icon()
@@ -235,8 +272,7 @@ class TempusWindow(Adw.ApplicationWindow):
 
     def _auto_advance(self):
         if self.timer.session_type == SessionType.FOCUS:
-            completed = self.timer.sessions_completed
-            if completed > 0 and completed % self.timer.sessions_before_long_break == 0:
+            if self._focus_minutes == 50:
                 self._session_btns[SessionType.LONG_BREAK].set_active(True)
             else:
                 self._session_btns[SessionType.SHORT_BREAK].set_active(True)
@@ -416,10 +452,12 @@ class TempusWindow(Adw.ApplicationWindow):
         self._todo_revealer.set_reveal_child(btn.get_active())
 
     def _load_settings(self):
+        self._focus_minutes = 25
         try:
             s = Gio.Settings.new("io.github.EmaLica.Tempus")
             self._settings = s
-            self.timer.durations[SessionType.FOCUS] = s.get_int("focus-duration") * 60
+            self._focus_minutes = 50 if s.get_int("focus-duration") >= 38 else 25
+            self.timer.durations[SessionType.FOCUS] = self._focus_minutes * 60
             self.timer.durations[SessionType.SHORT_BREAK] = s.get_int("short-break-duration") * 60
             self.timer.durations[SessionType.LONG_BREAK] = s.get_int("long-break-duration") * 60
             self.timer.durations[SessionType.CUSTOM] = s.get_int("custom-duration") * 60
