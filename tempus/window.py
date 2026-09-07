@@ -51,7 +51,7 @@ class TempusWindow(Adw.ApplicationWindow):
         main_toolbar = Adw.ToolbarView()
         header = Adw.HeaderBar()
 
-        stats_btn = Gtk.Button(icon_name="x-office-calendar-symbolic")
+        stats_btn = Gtk.Button(icon_name="io.github.EmaLica.Tempus-calendar-symbolic")
         stats_btn.set_tooltip_text("Today's focus stats")
         stats_btn.connect("clicked", self._on_stats_clicked)
         header.pack_start(stats_btn)
@@ -164,7 +164,7 @@ class TempusWindow(Adw.ApplicationWindow):
         self._update_start_icon()
         controls.append(self._start_btn)
 
-        self._skip_btn = Gtk.Button(icon_name="media-skip-forward-symbolic")
+        self._skip_btn = Gtk.Button(icon_name="io.github.EmaLica.Tempus-skip-forward-symbolic")
         self._skip_btn.add_css_class("circular")
         self._skip_btn.set_tooltip_text("Skip session")
         self._skip_btn.connect("clicked", lambda *_: self._do_skip())
