@@ -132,6 +132,17 @@ class TempusPreferences(Adw.PreferencesWindow):
                 start_row.set_active(True)
         start_row.connect("notify::active", self._on_start_sound_changed)
         notif_group.add(start_row)
+
+        loop_row = Adw.SwitchRow()
+        loop_row.set_title("Keep the end sound playing")
+        loop_row.set_subtitle("Repeat it until you dismiss the session")
+        if self._settings:
+            try:
+                loop_row.set_active(self._settings.get_boolean("loop-alert"))
+            except Exception:
+                loop_row.set_active(False)
+        loop_row.connect("notify::active", self._on_loop_alert_changed)
+        notif_group.add(loop_row)
         page.add(notif_group)
 
         self._subjects_group = Adw.PreferencesGroup()
@@ -306,6 +317,13 @@ class TempusPreferences(Adw.PreferencesWindow):
         if self._settings:
             try:
                 self._settings.set_boolean("start-sound", row.get_active())
+            except Exception:
+                pass
+
+    def _on_loop_alert_changed(self, row: Adw.SwitchRow, _param) -> None:
+        if self._settings:
+            try:
+                self._settings.set_boolean("loop-alert", row.get_active())
             except Exception:
                 pass
 

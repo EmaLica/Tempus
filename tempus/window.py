@@ -34,6 +34,8 @@ class TempusWindow(Adw.ApplicationWindow):
         self.timer = Timer()
         self.timer.connect_finish(self._on_finish)
         self._state_cb = None
+        self._alert_pipeline = None
+        self._alert_active = False
 
         self.set_title("Tempus")
         self.set_default_size(420, 660)
@@ -227,6 +229,8 @@ class TempusWindow(Adw.ApplicationWindow):
 
     def _on_session_toggled(self, btn: Gtk.ToggleButton, stype: SessionType):
         if btn.get_active():
+            self._stop_alert()
+            self._alert_active = False
             self.timer.set_session_type(stype)
             self._focus_length_revealer.set_reveal_child(stype == SessionType.FOCUS)
             self._update_start_icon()
@@ -251,8 +255,10 @@ class TempusWindow(Adw.ApplicationWindow):
         self._update_start_icon()
         self._refresh_dots()
         self._dnd_set_focus_mode(False)
-        self._play_sound("finish.mp3")
         self._send_notification()
+        looping = self._loop_alert_enabled() and self._play_alert()
+        if not looping:
+            self._play_sound("finish.mp3")
         if self.timer.session_type == SessionType.FOCUS:
             active_item = self._todo_panel.get_active_item()
             entry: dict = {
@@ -267,7 +273,12 @@ class TempusWindow(Adw.ApplicationWindow):
             storage.append_history(entry)
             if active_item:
                 self._todo_panel.add_pomodoro(active_item.id)
-        self._auto_advance()
+        if looping:
+            self._alert_active = True
+            self._update_start_icon()
+            self._on_tick()
+        else:
+            self._auto_advance()
         self._drawing.queue_draw()
 
     def _auto_advance(self):
@@ -306,6 +317,59 @@ class TempusWindow(Adw.ApplicationWindow):
         except Exception:
             pass
 
+    def _loop_alert_enabled(self) -> bool:
+        if not self._settings:
+            return False
+        try:
+            return self._settings.get_boolean("loop-alert")
+        except Exception:
+            return False
+
+    def _play_alert(self) -> bool:
+        self._stop_alert()
+        path = SOUNDS_DIR / "finish.mp3"
+        if not path.exists():
+            return False
+        vol = 0.7
+        try:
+            if self._settings:
+                vol = self._settings.get_int("alert-volume") / 100.0
+        except Exception:
+            pass
+        try:
+            pl = Gst.ElementFactory.make("playbin", None)
+            pl.set_property("uri", path.as_uri())
+            pl.set_property("volume", vol)
+            bus = pl.get_bus()
+            bus.add_signal_watch()
+            bus.connect("message", self._on_alert_message)
+            pl.set_state(Gst.State.PLAYING)
+            self._alert_pipeline = pl
+            return True
+        except Exception:
+            self._alert_pipeline = None
+            return False
+
+    def _on_alert_message(self, _bus, msg):
+        if msg.type == Gst.MessageType.EOS and self._alert_pipeline is not None:
+            self._alert_pipeline.seek_simple(
+                Gst.Format.TIME, Gst.SeekFlags.FLUSH, 0
+            )
+        elif msg.type == Gst.MessageType.ERROR:
+            self._stop_alert()
+
+    def _stop_alert(self):
+        if self._alert_pipeline is not None:
+            self._alert_pipeline.set_state(Gst.State.NULL)
+            self._alert_pipeline = None
+
+    def _dismiss_alert(self):
+        self._stop_alert()
+        self._alert_active = False
+        self._auto_advance()
+        self._update_start_icon()
+        self._drawing.queue_draw()
+
     def _send_notification(self):
         app = self.get_application()
         notif = Gio.Notification.new("Tempus")
@@ -314,6 +378,9 @@ class TempusWindow(Adw.ApplicationWindow):
         app.send_notification("timer-done", notif)
 
     def _do_start_pause(self):
+        if self._alert_active:
+            self._dismiss_alert()
+            return
         if self.timer.state == TimerState.RUNNING:
             self.timer.pause()
             if self.timer.session_type == SessionType.FOCUS:
@@ -337,12 +404,16 @@ class TempusWindow(Adw.ApplicationWindow):
             return True
 
     def _do_reset(self):
+        self._stop_alert()
+        self._alert_active = False
         self._dnd_set_focus_mode(False)
         self.timer.reset()
         self._update_start_icon()
         self._drawing.queue_draw()
 
     def _do_skip(self):
+        self._stop_alert()
+        self._alert_active = False
         self._dnd_set_focus_mode(False)
         self.timer.reset()
         self._update_start_icon()
@@ -351,12 +422,14 @@ class TempusWindow(Adw.ApplicationWindow):
         self._drawing.queue_draw()
 
     def _update_start_icon(self):
-        icon = (
-            "media-playback-pause-symbolic"
-            if self.timer.state == TimerState.RUNNING
-            else "media-playback-start-symbolic"
-        )
+        if self._alert_active:
+            icon = "media-playback-stop-symbolic"
+        elif self.timer.state == TimerState.RUNNING:
+            icon = "media-playback-pause-symbolic"
+        else:
+            icon = "media-playback-start-symbolic"
         self._start_btn.set_icon_name(icon)
+        self._start_btn.set_tooltip_text("Stop the alert" if self._alert_active else "")
         self._push_state()
 
     def set_state_listener(self, cb):
@@ -470,6 +543,11 @@ class TempusWindow(Adw.ApplicationWindow):
         self._push_state()
         self._time_label.set_label(self.timer.format_time())
         self._drawing.queue_draw()
+
+        if self._alert_active:
+            self.set_title("Tempus")
+            self._session_label.set_label("Time's up")
+            return
 
         if self.timer.state == TimerState.RUNNING or self.timer.state == TimerState.PAUSED:
             self.set_title(f"{self.timer.format_time()} · {SESSION_NAMES[self.timer.session_type]}")

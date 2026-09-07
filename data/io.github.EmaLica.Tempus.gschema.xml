@@ -63,5 +63,10 @@
       <summary>Play a sound when a session starts</summary>
     </key>
 
+    <key name="loop-alert" type="b">
+      <default>false</default>
+      <summary>Repeat the end-of-session sound until it is dismissed</summary>
+    </key>
+
   </schema>
 </schemalist>
