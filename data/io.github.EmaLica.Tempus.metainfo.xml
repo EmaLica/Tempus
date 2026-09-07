@@ -64,6 +64,11 @@
   </developer>
 
   <releases>
+    <release version="0.9.1" date="2026-09-07">
+      <description>
+        <p>The skip-session and stats buttons now ship their own icons, so they render correctly on systems whose icon theme is missing or mangles the stock symbols.</p>
+      </description>
+    </release>
     <release version="0.9.0" date="2026-08-24">
       <description>
         <p>Focus sessions now toggle between 25 and 50 minutes right from the main page. Picking 25 minutes lines up a short break when the session ends; picking 50 lines up a long break.</p>
