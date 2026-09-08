@@ -35,6 +35,7 @@ class TempusWindow(Adw.ApplicationWindow):
         self.timer.connect_finish(self._on_finish)
         self._state_cb = None
         self._alert_pipeline = None
+        self._alert_uri = None
         self._alert_active = False
 
         self.set_title("Tempus")
@@ -338,8 +339,12 @@ class TempusWindow(Adw.ApplicationWindow):
             pass
         try:
             pl = Gst.ElementFactory.make("playbin", None)
-            pl.set_property("uri", path.as_uri())
+            self._alert_uri = path.as_uri()
+            pl.set_property("uri", self._alert_uri)
             pl.set_property("volume", vol)
+            # loop gapless: riassegniamo l'uri prima che lo stream finisca,
+            # così il playbin riparte da capo e l'EOS non arriva mai
+            pl.connect("about-to-finish", self._on_alert_about_to_finish)
             bus = pl.get_bus()
             bus.add_signal_watch()
             bus.connect("message", self._on_alert_message)
@@ -350,15 +355,21 @@ class TempusWindow(Adw.ApplicationWindow):
             self._alert_pipeline = None
             return False
 
+    def _on_alert_about_to_finish(self, pl):
+        if self._alert_uri:
+            pl.set_property("uri", self._alert_uri)
+
     def _on_alert_message(self, _bus, msg):
         if msg.type == Gst.MessageType.EOS and self._alert_pipeline is not None:
-            self._alert_pipeline.seek_simple(
-                Gst.Format.TIME, Gst.SeekFlags.FLUSH, 0
-            )
+            # fallback se about-to-finish non ha rifornito lo stream in tempo:
+            # riavvio completo del pipeline
+            self._alert_pipeline.set_state(Gst.State.NULL)
+            self._alert_pipeline.set_state(Gst.State.PLAYING)
         elif msg.type == Gst.MessageType.ERROR:
             self._stop_alert()
 
     def _stop_alert(self):
+        self._alert_uri = None
         if self._alert_pipeline is not None:
             self._alert_pipeline.set_state(Gst.State.NULL)
             self._alert_pipeline = None
