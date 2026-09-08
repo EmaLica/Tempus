@@ -20,8 +20,8 @@ Focus in clean 25 minute blocks, tag what you're working on, and see exactly whe
 ## Features
 
 - **Four session types.** Focus, Short Break, Long Break and Custom, each with a duration you can change on the fly. Focus itself toggles between a 25 or 50 minute block right on the main page.
-- **A ring that shows where you are.** The progress ring is colour-coded per session type, with dots underneath counting the focus sessions in your current cycle.
-- **Auto-cycle.** Finish a focus block and Tempus lines up the matching break — short after 25 minutes, long after 50 — and advances on its own.
+- **A ring that shows where you are.** The progress ring is colour-coded per session type, with dots underneath counting the focus sessions in your current cycle. Scroll on it while the timer is stopped to nudge the current session's length a minute at a time.
+- **Auto-cycle.** Finish a focus block and Tempus lines up the matching break — short after a brief focus, long after a longer one — and advances on its own.
 - **Todo list that sticks around.** Add tasks inline or import them from Markdown, export them back when you're done. Standard GFM checkboxes, nothing proprietary.
 - **Subjects.** Tag any task with a subject like Thesis, Coursework or Reading, each with its own colour shown as a dot beside the task. Add them on the fly or manage them in Preferences.
 - **Markdown that carries more than a checkbox.** An imported task can declare how many pomodoros it should take and which subject it belongs to, and any detail you indent underneath becomes its subtitle. Notes wrap to the window width instead of being cut off, so a long one stays readable.
@@ -32,7 +32,7 @@ Focus in clean 25 minute blocks, tag what you're working on, and see exactly whe
 - **Focus mode.** Silences GNOME notifications while a session runs and restores them the moment you stop.
 - **Live countdown in the window title.** Glance at the taskbar and read `12:34 · Focus` without switching back to the app.
 - **GNOME Shell panel widget.** An optional top-bar indicator with a session-coloured dot and live countdown — start, pause, skip or switch session without opening the window.
-- **Sound alerts with volume control.** A chime when a session starts and ends. Mute the start sound if it gets on your nerves.
+- **Sound alerts with volume control.** A chime when a session starts and ends. Mute the start sound if it gets on your nerves, or keep the end one looping until you dismiss the session.
 - **Desktop notifications.** Pinged the moment a session ends, even with the window minimised.
 - **No restart, ever.** Change any duration or the cycle length in Preferences and it applies live.
 
