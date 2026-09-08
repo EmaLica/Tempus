@@ -64,6 +64,11 @@
   </developer>
 
   <releases>
+    <release version="0.9.2" date="2026-09-08">
+      <description>
+        <p>The option to keep the end-of-session sound playing until it is dismissed now works: the sound repeats without gaps instead of playing only once.</p>
+      </description>
+    </release>
     <release version="0.9.1" date="2026-09-07">
       <description>
         <p>The skip-session and stats buttons now ship their own icons, so they render correctly on systems whose icon theme is missing or mangles the stock symbols.</p>
