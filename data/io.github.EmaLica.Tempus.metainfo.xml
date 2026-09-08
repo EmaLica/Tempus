@@ -64,6 +64,11 @@
   </developer>
 
   <releases>
+    <release version="0.10.0" date="2026-09-08">
+      <description>
+        <p>You can now scroll on the timer ring while it is stopped to adjust the current session's length a minute at a time, without opening Preferences.</p>
+      </description>
+    </release>
     <release version="0.9.2" date="2026-09-08">
       <description>
         <p>The option to keep the end-of-session sound playing until it is dismissed now works: the sound repeats without gaps instead of playing only once.</p>
