@@ -27,6 +27,21 @@ SESSION_COLORS: dict[SessionType, tuple[float, float, float]] = {
     SessionType.CUSTOM:      (0.612, 0.310, 0.831),
 }
 
+# minuti min/max per tipo di sessione, allineati alle <range> della gschema
+DURATION_RANGES: dict[SessionType, tuple[int, int]] = {
+    SessionType.FOCUS:       (1, 90),
+    SessionType.SHORT_BREAK: (1, 30),
+    SessionType.LONG_BREAK:  (1, 60),
+    SessionType.CUSTOM:      (1, 120),
+}
+
+SETTING_KEYS: dict[SessionType, str] = {
+    SessionType.FOCUS:       "focus-duration",
+    SessionType.SHORT_BREAK: "short-break-duration",
+    SessionType.LONG_BREAK:  "long-break-duration",
+    SessionType.CUSTOM:      "custom-duration",
+}
+
 
 class TempusWindow(Adw.ApplicationWindow):
     def __init__(self, **kwargs):
@@ -37,6 +52,7 @@ class TempusWindow(Adw.ApplicationWindow):
         self._alert_pipeline = None
         self._alert_uri = None
         self._alert_active = False
+        self._scroll_accum = 0.0
 
         self.set_title("Tempus")
         self.set_default_size(420, 660)
@@ -107,15 +123,15 @@ class TempusWindow(Adw.ApplicationWindow):
         length_pill.add_css_class("linked")
         length_pill.set_halign(Gtk.Align.CENTER)
 
+        # toggle indipendenti (non un gruppo radio): scrollando sul ring il
+        # focus può finire su un valore non-preset e allora nessuno dei due
+        # dev'essere attivo
         self._focus_length_btns: dict[int, Gtk.ToggleButton] = {}
-        first_length = None
+        self._focus_length_handlers: dict[int, int] = {}
         for minutes in (25, 50):
             btn = Gtk.ToggleButton(label=f"{minutes} min")
-            if first_length is None:
-                first_length = btn
-            else:
-                btn.set_group(first_length)
-            btn.connect("toggled", self._on_focus_length_toggled, minutes)
+            hid = btn.connect("toggled", self._on_focus_length_toggled, minutes)
+            self._focus_length_handlers[minutes] = hid
             length_pill.append(btn)
             self._focus_length_btns[minutes] = btn
 
@@ -148,6 +164,13 @@ class TempusWindow(Adw.ApplicationWindow):
         center.append(self._session_label)
 
         overlay.add_overlay(center)
+
+        scroll_ctrl = Gtk.EventControllerScroll.new(
+            Gtk.EventControllerScrollFlags.VERTICAL
+        )
+        scroll_ctrl.connect("scroll", self._on_ring_scroll)
+        overlay.add_controller(scroll_ctrl)
+
         box.append(overlay)
 
         controls = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
@@ -192,7 +215,7 @@ class TempusWindow(Adw.ApplicationWindow):
         body.append(self._todo_revealer)
 
         main_toolbar.set_content(body)
-        self._focus_length_btns[self._focus_minutes].set_active(True)
+        self._sync_focus_length_buttons()
         self._session_btns[SessionType.FOCUS].set_active(True)
 
         main_page = Adw.NavigationPage.new(main_toolbar, "Tempus")
@@ -240,7 +263,14 @@ class TempusWindow(Adw.ApplicationWindow):
 
     def _on_focus_length_toggled(self, btn: Gtk.ToggleButton, minutes: int):
         if not btn.get_active():
+            # un preset non si "spegne" cliccandoci sopra: se è quello corrente
+            # lo riaccendiamo, altrimenti era già inattivo e non c'è nulla da fare
+            if self._focus_minutes == minutes:
+                self._set_focus_btn_silently(minutes, True)
             return
+        self._set_focus_duration(minutes)
+
+    def _set_focus_duration(self, minutes: int):
         self._focus_minutes = minutes
         self.timer.durations[SessionType.FOCUS] = minutes * 60
         if self.timer.session_type == SessionType.FOCUS:
@@ -250,7 +280,61 @@ class TempusWindow(Adw.ApplicationWindow):
                 self._settings.set_int("focus-duration", minutes)
             except Exception:
                 pass
+        self._sync_focus_length_buttons()
         self._drawing.queue_draw()
+
+    def _set_focus_btn_silently(self, minutes: int, active: bool):
+        btn = self._focus_length_btns[minutes]
+        hid = self._focus_length_handlers[minutes]
+        btn.handler_block(hid)
+        btn.set_active(active)
+        btn.handler_unblock(hid)
+
+    def _sync_focus_length_buttons(self):
+        for minutes, btn in self._focus_length_btns.items():
+            want = minutes == self._focus_minutes
+            if btn.get_active() != want:
+                self._set_focus_btn_silently(minutes, want)
+
+    def _on_ring_scroll(self, _ctrl, _dx, dy):
+        # nudge della durata della sessione mostrata sul ring, solo da fermo.
+        # su = più tempo, giù = meno; ±1 min per tacca di rotella. i touchpad
+        # sparano tanti eventi piccoli, quindi accumuliamo il delta
+        if self.timer.state != TimerState.IDLE or self._alert_active:
+            return False
+        if dy == 0:
+            return False
+        if (dy > 0) != (self._scroll_accum > 0):
+            self._scroll_accum = 0.0
+        self._scroll_accum += dy
+        step = 0
+        while self._scroll_accum >= 1.0:
+            step -= 1
+            self._scroll_accum -= 1.0
+        while self._scroll_accum <= -1.0:
+            step += 1
+            self._scroll_accum += 1.0
+        if step:
+            self._nudge_duration(step)
+        return True
+
+    def _nudge_duration(self, step_minutes: int):
+        stype = self.timer.session_type
+        lo, hi = DURATION_RANGES[stype]
+        cur = round(self.timer.durations[stype] / 60)
+        new = max(lo, min(hi, cur + step_minutes))
+        if new == cur:
+            return
+        if stype == SessionType.FOCUS:
+            self._set_focus_duration(new)
+            return
+        self.timer.durations[stype] = new * 60
+        self.timer.reload_durations()
+        if self._settings:
+            try:
+                self._settings.set_int(SETTING_KEYS[stype], new)
+            except Exception:
+                pass
 
     def _on_finish(self):
         self._update_start_icon()
@@ -284,7 +368,8 @@ class TempusWindow(Adw.ApplicationWindow):
 
     def _auto_advance(self):
         if self.timer.session_type == SessionType.FOCUS:
-            if self._focus_minutes == 50:
+            # una sessione lunga (~50') apre un long break, una corta uno short
+            if self._focus_minutes >= 38:
                 self._session_btns[SessionType.LONG_BREAK].set_active(True)
             else:
                 self._session_btns[SessionType.SHORT_BREAK].set_active(True)
@@ -540,7 +625,7 @@ class TempusWindow(Adw.ApplicationWindow):
         try:
             s = Gio.Settings.new("io.github.EmaLica.Tempus")
             self._settings = s
-            self._focus_minutes = 50 if s.get_int("focus-duration") >= 38 else 25
+            self._focus_minutes = s.get_int("focus-duration")
             self.timer.durations[SessionType.FOCUS] = self._focus_minutes * 60
             self.timer.durations[SessionType.SHORT_BREAK] = s.get_int("short-break-duration") * 60
             self.timer.durations[SessionType.LONG_BREAK] = s.get_int("long-break-duration") * 60
